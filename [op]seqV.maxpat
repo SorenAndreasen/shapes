@@ -161,7 +161,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
-					"outlettype" : [ "bang", "", "int" ],
+					"outlettype" : [ "bang", "int", "int" ],
 					"patching_rect" : [ 816.0, 332.0, 51.0, 20.0 ],
 					"text" : "t b #3 0"
 				}
@@ -660,8 +660,8 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 7.0, 81.0, 79.0, 20.0 ],
-					"text" : "r [pat]oscOut"
+					"patching_rect" : [ 7.0, 65.0, 110.0, 20.0 ],
+					"text" : "r [shapes]fromGrid"
 				}
 
 			}
@@ -1080,14 +1080,6 @@
 					"source" : [ "obj-93", 0 ]
 				}
 
-			}
- ],
-		"dependency_cache" : [ 			{
-				"name" : "js_seqVPress.js",
-				"bootpath" : "/Users/sorenandreasen/max patches/_shapes",
-				"patcherrelativepath" : ".",
-				"type" : "TEXT",
-				"implicit" : 1
 			}
  ]
 	}

@@ -1,10 +1,11 @@
 inlets = 1;
-outlets = 2;
+outlets = 4;
 var offsetX;
 var offsetY;
 var c_ = 0;
 var c = 0;
 var mode = 0;
+
 function init(x,y,id)
 {
 	offsetX = x;
@@ -39,13 +40,22 @@ function press(x,y,s)
 	{
 		if(mode==1)
 		{
-			if(s)
-			else
+			if(s) outlet(1, 1);
+			else outlet(1, 0);
 
 		}
 		else if(mode==2)
-		else if(mode==3)
+		{
+			if(s) outlet(2, 1);
+			else outlet(2, 0);
 
+		}
+		else if(mode==3)
+		{
+			if(s) outlet(3, 1);
+			else outlet(3, 0);
+
+		}
 	}
 	
 	

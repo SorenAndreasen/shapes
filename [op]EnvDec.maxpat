@@ -37,8 +37,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 253.0, 205.0, 50.0, 31.0 ],
-					"text" : "press 0 1 0"
+					"patching_rect" : [ 253.0, 205.0, 51.0, 31.0 ],
+					"text" : "press 0 9 0"
 				}
 
 			}
@@ -148,8 +148,8 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 22.0, 96.0, 79.0, 20.0 ],
-					"text" : "r [pat]oscOut"
+					"patching_rect" : [ 22.0, 84.0, 110.0, 20.0 ],
+					"text" : "r [shapes]fromGrid"
 				}
 
 			}
@@ -160,8 +160,8 @@
 					"id" : "obj-1",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "", "" ],
+					"numoutlets" : 4,
+					"outlettype" : [ "", "", "", "" ],
 					"patching_rect" : [ 22.0, 175.0, 121.0, 20.0 ],
 					"saved_object_attributes" : 					{
 						"filename" : "js_envDecPress.js",
