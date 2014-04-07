@@ -28,23 +28,23 @@ function init(x1,x2,y)
 	syncRate[7]="16nt";
 }
 
-function press(x,y,val)
+function press(x,y,s)
 {
 	var range = length+offsetY;
 	if(y >= offsetY && y < range && x == offsetX) // check for local op range
 	{
 
-		if(val) c_++;
+		if(s) c_++;
 
-		c = c + ((val*2)-1); // if press: ++ // if release: --
+		c = c + ((s*2)-1); // if press: ++ // if release: --
 
-		if(c==1 && start==0) 
+		if(s && c==1 && start==0) 
 		{
 			start = 1; // first press
 			pressFirstY = y; // store first press, Y
 		}
 
-		if(c==2) pressSecondY=y; // store second press, Y
+		if(s && c==2) pressSecondY=y; // store second press, Y
 		
 		
 		if(c==0 && start==1) // finished pressing
@@ -84,11 +84,7 @@ function press(x,y,val)
 		c_ = 0; // reset count	
 		
 		}
-
 	}
-
-
-
-
 }
+
 

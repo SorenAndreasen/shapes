@@ -1,7 +1,7 @@
 inlets = 2;
-outlets = 7;
+outlets = 8;
 var c = 0;
-var start = 0;
+var start;
 var offsetX;
 var offsetY;
 var firstX;
@@ -9,10 +9,12 @@ var secondX;
 var firstY;
 var secondY;
 var ID;
-var abort=1;
+var isConnectedToEnv;
 
 function init(x,y, id)
 {
+	start = 1;
+	isConnectedToEnv=0;
 	offsetX = x;
 	offsetY = y;
 	ID = id;
@@ -20,6 +22,7 @@ function init(x,y, id)
 
 function press(x,y,s)
 {
+
 
 	if(x==offsetX || x==offsetX+1) 
 	{
@@ -37,6 +40,7 @@ function press(x,y,s)
 				else if(s && x == offsetX+1 && y == offsetY) mode=3; // FM
 				else if(s && x == offsetX+1 && y == offsetY+1) // connect to envelope
 				{
+
 					outlet(6, "set", ";", "[shapes]shapesIn", "oscConnect", ID, 1);
 					outlet(6, "bang");
 				}
@@ -45,18 +49,13 @@ function press(x,y,s)
 			{
 				if(x == offsetX+1 && y == offsetY+1) 
 				{
-					outlet(6, "set", ";", "[shapes]shapesIn", "oscConnect", ID, 0);
-					outlet(6, "bang");
+					//outlet(6, "set", ";", "[shapes]shapesIn", "oscConnect", ID, 0);
+					//outlet(6, "bang");
 				}
 				start=1;
 				mode=0;
 			}
 		
-
-
-
-
-
 
 			// change params, in active mode
 			if(mode==1) // wave
@@ -102,5 +101,20 @@ function press(x,y,s)
 		}
 
 	}
+}
+
+function connectEnv() // toggle between free mode and connected-to-env mode
+{
+	if(isConnectedToEnv==0) 
+	{
+		isConnectedToEnv = 1;
+		outlet(7, 2);	
+	}
+	else
+	{
+		isConnectedToEnv = 0;
+		outlet(7, 1);	
+	}
+
 }
 

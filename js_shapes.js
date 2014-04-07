@@ -23,8 +23,14 @@ var seqnr = 0;
 var envs = new Array(30);  // as above
 var envnr = 0;
 
-var cells = new Array(16); // array to store the state of all cells (0 = free, and each OP has an ID)
+// variables for temporarily holding a senders ID nr and send it on to receiver:
+var oscConnectID = 0; 
+var envConnectID = 0;
+var envConnectType = 0;
 
+///////
+var cellState = new Array(16); // array to store the state of all cells (0 = free, and each OP has an ID)
+var cellID = new Array(16); // array to store unique operator ID for each cell
 //////
 
 var firstX;
@@ -33,10 +39,13 @@ var secondX;
 var secondY;
 
 var mode = 1; // 1 = edit / 0 = play
+var enableOscConnect;
+var enableStepConnect;
 
 for (var i = 0; i<32; i++) { 							
     now[i] = new Array(32); //  make press-array contain y-info as well
-    cells[i] = new Array(32); // make cell-array contain if cells are used/free
+    cellState[i] = new Array(32); // make cell-array contain if cellState are used/free
+    cellID[i] = new Array(32);
     // init cell array x+y
 
 }
@@ -45,18 +54,45 @@ for (var i = 0; i<32; i ++)
 	for(var b = 0; b <32; b++)
 	{
 		now[i][b]=0;
-    	cells[i][b]=0;
+    	cellState[i][b]=0;
+    	cellID[i][b]=0;
 	}
 }
 
- 
+function init()
+{
+	enableStepConnect = 0;
+	enableOscConnect = 0;
+	mode=1;
+	outlet(0, "set", ";", "[shapes]oscIn", "/shapes/grid/led/set", 0, 7, 1);
+	outlet(0, "bang");
+	post("connects" + enableStepConnect + enableOscConnect);
+}
 function list(x,y,s) 
 {
-	if(x==0 && y==7) mode--;
-	if(mode<0) mode=1;
+	if(s) // decide play/edit mode as first thing
+	{
+		if(x==0 && y==7) 
+		{
+			mode--;
+			if(mode<0) 
+			{
+				mode=1;
+				outlet(0, "set", ";", "[shapes]oscIn", "/shapes/grid/led/set", 0, 7, 1);
+				outlet(0, "bang");
+			}
+			else
+			{
+				outlet(0, "set", ";", "[shapes]oscIn", "/shapes/grid/led/set", 0, 7, 0);
+				outlet(0, "bang");
+			}
+		}
+	}
+	
+	//////////////////////// edit mode /////////////////////////
+	////////////////////////////////////////////////////////////
 
-
-	if(mode) // edit mode
+	if(mode) 
 	{
 		if(s == 1) 
 		{
@@ -94,19 +130,19 @@ function list(x,y,s)
 					var length = Math.abs(secondX-firstX)+1;
 					var leftmostX = Math.min(firstX, secondX);
 
-					for(i=0;i<length;i++) // go through x cells
+					for(i=0;i<length;i++) // go through x cellState
 					{
-						if(cells[i+leftmostX][firstY] > 0) // // some cells are not free in range
+						if(cellState[i+leftmostX][firstY] > 0) // // some cellState are not free in range
 						{
-							sum = sum + cells[i+leftmostX][firstY]; // calculate all cell's content
+							sum = sum + cellState[i+leftmostX][firstY]; // calculate all cell's content
 						}
 					}
 
-					if(sum==0) // cells free = MAKE:
+					if(sum==0) // cellState free = MAKE:
 					{
 						setSeqH(leftmostX, firstY, length);
 					}
-					else if(sum==length*2) // already seq = DELETE:
+					else if(sum==length*4) // already seq = DELETE:
 					{
 						delSeqH(leftmostX, firstY, length);
 					}
@@ -116,19 +152,19 @@ function list(x,y,s)
 					var length = Math.abs(secondY-firstY)+1;
 					var topmostY = Math.min(firstY, secondY);
 
-					for(i=0;i<length;i++) // go through x cells
+					for(i=0;i<length;i++) // go through x cellState
 					{
-						if(cells[firstX][i+topmostY] > 0) // // some cells are not free in range
+						if(cellState[firstX][i+topmostY] > 0) // // some cellState are not free in range
 						{
-							sum = sum + cells[firstX][topmostY+i]; // calculate all cell's content
+							sum = sum + cellState[firstX][topmostY+i]; // calculate all cell's content
 						}
 					}
 					
-					if(sum==0) // cells free = MAKE:
+					if(sum==0) // cellState free = MAKE:
 					{
 						setSeqV(firstX, topmostY, length);
 					}
-					else if(sum==length*2) // already seq = DELETE:
+					else if(sum==length*5) // already seq = DELETE:
 					{
 						delSeqV(firstX, topmostY, length);
 					}
@@ -157,7 +193,7 @@ function list(x,y,s)
 					for(xx=0;xx<3;xx++)
 						if(now[xx + minx][yy + miny] == 1) shape = shape + (1<<(xx + yy*3));
 
-				post("shape: " + shape + "\n");
+				//post("shape: " + shape + "\n");
 
 				if(shape==27) // osc
 				{
@@ -182,39 +218,113 @@ function list(x,y,s)
 			
 		}
 	}
-	else // play mode
+
+	//////////////////////// play mode /////////////////////////
+	////////////////////////////////////////////////////////////
+
+	else 
 	{
-		outlet(0, "set", ";", "[shapes]fromGrid", x,y,s);
+		post("pre:: enableOscConnect: " + enableOscConnect + "\n");
+		post("pre:: enableStepConnect: " + enableStepConnect + "\n");
+
+		/* abort stepConnect mode if a button is being released that's not inside a sequencer
+		   this is a dodgy solution, and should be made with a temporary unique ID so that it's 
+		   only aborted when the actual stepConnect-button that's being pressed (inside the envelope)
+		   is being released: */
+		if(s==0 && cellState[x][y] != 4 && cellState[x][y] != 5 && enableStepConnect) enableStepConnect = 0;
+
+		/* abort oscConnect-mode when an osc button is released. this is a DODGY solution, and should be
+		   made with a temporary unique ID so that it's only aborted when the osc-connect-button that's actually
+		   being pressed, is released: */
+		if(s==0 && cellState[x][y] == 1 && enableOscConnect) enableOscConnect = 0; 
+
+
+		if(enableStepConnect==0 && enableOscConnect==0) 
+		{ // only send raw presses to operators if no connector buttons are being held
+			outlet(0, "set", ";", "[shapes]fromGrid", x,y,s);
+			outlet(0, "bang");
+		}
+
+		
+
+		if(s && enableOscConnect) // connect osc to envelope
+		{
+			if(cellState[x][y] == 2) // if pushing a decay envelope position
+			{
+				post("cellID" + cellID[x][y] +  "\n");
+				outlet(0, "set", ";", "[shapes]envDecIn"+cellID[x][y], "oscConnect", oscConnectID, x, y)
+				outlet(0, "bang");
+
+				// send a bang to osc to toggle between connected/free state:
+				outlet(0, "set", ";", "[shapes]oscIn"+oscConnectID, "connectEnv") 
+				outlet(0, "bang");
+
+			}
+			else if(cellState[x][y] == 3) // if puhsing attack env
+			{
+				outlet(0, "set", ";", "[shapes]envAttIn"+cellID[x][y], "oscConnect", oscConnectID, x, y)
+				outlet(0, "bang");
+
+				outlet(0, "set", ";", "[shapes]oscIn"+oscConnectID, "connectEnv")
+				outlet(0, "bang");
+			}
+			
+		}
+		else if(s && enableStepConnect) // let active envelope set steps in pressed sequencers
+		{
+			if(cellState[x][y] == 5) // if pushing a seqV position
+			{
+				outlet(0, "set", ";", "[shapes]SeqVIn"+cellID[x][y],"setStep", envConnectType, envConnectID, y)
+				outlet(0, "bang");
+			}
+			else if(cellState[x][y] == 4) // if pushing a seqH position
+			{
+				outlet(0, "set", ";", "[shapes]SeqHIn"+cellID[x][y],"setStep", envConnectType, envConnectID, x)
+				outlet(0, "bang");
+			}
+			
+		}
+		post("enableOscConnect: " + enableOscConnect + "\n");
+		post("enableStepConnect: " + enableStepConnect + "\n");
 	}
+	
 	
 }
 function setEnvDec(x,y)
 {
 	var id = x+y;
-	envs[id] = this.patcher.newdefault(0,0, "[op]envDec", x,y,envnr);
-	envr++;
-	cells[x][y] = cells[x+1][y+1] = cells[x+2][y+2] = 3;
+	envs[id] = this.patcher.newdefault(0,0, "[op]envDec", x,y,id);
+	envnr++;
+	cellState[x][y] = cellState[x+1][y+1] = cellState[x+2][y+2] = 2; // set type
+	cellID[x][y] = cellID[x+1][y+1] = cellID[x+2][y+2] = id; // set ID
 }
 function setEnvAtt(x,y)
 {
 	var id = x+y;
-	envs[id] = this.patcher.newdefault(0,0, "[op]setEnvAtt", x,y,envnr);
-	envr++;
-	cells[x][y] = cells[x+1][y-1] = cells[x+2][y-2] = 3;
+	envs[id] = this.patcher.newdefault(0,0, "[op]setEnvAtt", x,y,id);
+	envnr++;
+	cellState[x][y] = cellState[x+1][y-1] = cellState[x+2][y-2] = 3;
+	cellID[x][y] = cellID[x+1][y-1] = cellID[x+2][y-2] = id; 
 }
 function setOsc(x,y)
 {
-	oscs[oscnr] = this.patcher.newdefault(0,0,"[op]osc", x, y, 120, oscnr);
+	var id = x+y;
+	oscs[id] = this.patcher.newdefault(0,0,"[op]osc", x, y, 120, id);
 	oscnr++;
-	cells[x][y] = cells[x+1][y] = cells[x][y+1] = cells[x+1][y+1] = 1;
+	cellState[x][y] = cellState[x+1][y] = cellState[x][y+1] = cellState[x+1][y+1] = 1;
+	cellID[x][y] = cellID[x+1][y] = cellID[x][y+1] = cellID[x+1][y+1] = id;
 }	
 function setSeqH(x,y, length)
 {
 	var id = x+y;
 	seqs[id] = this.patcher.newdefault(0,0, "[op]seqH",x,length,y,id);
 	seqnr++;
-	for(i=0;i<length;i++) // fill cells with seq ID (2)
-		cells[i+x][y] = 2;
+	for(i=0;i<length;i++) // fill cellState with seq type (2)
+	{
+		cellState[i+x][y] = 4;
+		cellID[i+x][y] = id;
+	}
+		
 
 }
 function setSeqV(x,y,length)
@@ -222,10 +332,13 @@ function setSeqV(x,y,length)
 	var id = x+y;
 	seqs[x+y] = this.patcher.newdefault(0,0, "[op]seqV",x,length,y,id);
 	seqnr++;
-	for(i=0;i<length;i++) // fill cells with seq ID (2)
-		cells[x][i+y] = 2;	
+	for(i=0;i<length;i++) // fill cellState with seq type (2)
+	{
+		cellState[x][i+y] = 5;	
+		cellID[x][i+y] = id;
+	}
+		
 }
-
 
 function delOsc(x,y)
 {
@@ -233,7 +346,7 @@ function delOsc(x,y)
 	outlet(0, "bang");
 	this.patcher.remove(oscs[oscnr-1])
 	oscnr--;
-	cells[x][y] = cells[x+1][y] = cells[x][y+1] = cells[x+1][y+1] = 0;
+	cellState[x][y] = cellState[x+1][y] = cellState[x][y+1] = cellState[x+1][y+1] = 0;
 }
 function delSeqH(x, y, length)
 {
@@ -243,7 +356,7 @@ function delSeqH(x, y, length)
 	this.patcher.remove(seqs[id]);
 	seqnr--;
 	for(i=0;i<length;i++)
-		cells[i+x][y] = 0; // free cells
+		cellState[i+x][y] = 0; // free cellState
 }
 function delSeqV(x,y,length)
 {
@@ -253,7 +366,7 @@ function delSeqV(x,y,length)
 	this.patcher.remove(seqs[id]);
 	seqnr--;
 	for(i=0;i<length;i++)
-		cells[x][y+i] = 0; // free cells
+		cellState[x][y+i] = 0; // free cellState
 }
 function delEnvDec(x,y)
 {
@@ -264,8 +377,39 @@ function delEnvAtt(x,y)
 
 }
 
-function oscConnect(id, state)
+
+///////// interaction between scripts and modules
+function oscConnect(id, state) // osc --> here --> envelope
 {
-	outlet(0, "set", ";", "[shapes]SeqIn"+id );
-	outlet(0, "bang");
+	oscConnectID = id;
+	enableOscConnect=1;
+	post("inside shapes-oscConnect: enableOscConnect: " + enableOscConnect + "\n");
+	//outlet(0, "set", ";", "[shapes]SeqIn"+id );
+	//outlet(0, "bang");
+}
+
+function envToSeq(type, envID,s) // envelope --> here --> step
+{
+	envConnectType = type;
+	envConnectID = envID;
+	if(s)enableStepConnect=1;
+	else enableStepConnect=0;
+
+
+	//post("inside shapes-envToSeq: enableStepConnect: " + enableStepConnect + "\n");
+	/*
+	if(cellState[x][y] == 2) // is there a seq here?
+	{
+		post("settingstep");
+		outlet(0, "set", ";", "[shapes]stepIn"+id, "setStep", id,x,y,s);
+		outlet(0, "bang");
+	}
+	*/
+}
+
+
+function reportConnectorStates()
+{
+	post("oscConnector: " + enableOscConnect + "\n");
+	post("stepConnector: " + enableStepConnect + "\n");
 }
