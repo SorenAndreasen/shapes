@@ -8,7 +8,7 @@
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 295.0, 97.0, 433.0, 891.0 ],
+		"rect" : [ 87.0, 67.0, 1242.0, 896.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -28,6 +28,21 @@
 		"digest" : "",
 		"tags" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"fontname" : "Arial",
+					"fontsize" : 12.0,
+					"frgb" : 0.0,
+					"id" : "obj-15",
+					"linecount" : 23,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 436.0, 29.0, 801.0, 316.0 ],
+					"text" : "to-do list:\n\n\n-- osc pitch should be connectable to an enveleope\n-- osc connect-env button should also function as a volume mode for that osc\n-- when holding an osc connect-button, connected envelopes should light up\n-- when an envelope is triggered, it should light up (optimal: use intensity to make a nice fade which has same length as the triggered envelope time)\n-- when a point in a squence is triggered with content - make that point light up brighter than playhead\n\n\n\n\n\n--- make envelope operators into 2*2 squares (like oscs), \nand have the symbol showing wether it's attack/decay\nbe only two cells in this quare. the two other cells would still be\npushable (which gives 4-6 modes like the osc).\nthe two cells that aren't the symbols would be in a low intensity to indicate a kind of background\n\n\n-- overlapping sequencers (if you press an overlapping sequencer point, both sequencers would go to this area)\n\n-- "
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-8",
 					"maxclass" : "meter~",
@@ -309,7 +324,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 320.5, 331.0, 52.0, 539.0 ]
+					"patching_rect" : [ 296.5, 340.5, 52.0, 539.0 ]
 				}
 
 			}
@@ -392,7 +407,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 38.0, 325.0, 126.0, 45.0 ],
-					"text" : ";\r[shapes]fromGrid 6 0 0"
+					"text" : ";\r[shapes]fromGrid 11 3 0"
 				}
 
 			}
@@ -1206,7 +1221,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 320.5, 304.0, 118.0, 20.0 ],
+					"patching_rect" : [ 296.5, 304.0, 118.0, 20.0 ],
 					"text" : "receive~ [pat]dacLR"
 				}
 

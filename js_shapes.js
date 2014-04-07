@@ -205,7 +205,7 @@ function list(x,y,s)
 				}
 				else if(shape==84) // attack env	
 				{
-					setEnvAttack(minx, miny+2); 
+					setEnvAtt(minx, miny+2); 
 				}
 
 			}
@@ -224,8 +224,8 @@ function list(x,y,s)
 
 	else 
 	{
-		post("pre:: enableOscConnect: " + enableOscConnect + "\n");
-		post("pre:: enableStepConnect: " + enableStepConnect + "\n");
+		//post("pre:: enableOscConnect: " + enableOscConnect + "\n");
+		//post("pre:: enableStepConnect: " + enableStepConnect + "\n");
 
 		/* abort stepConnect mode if a button is being released that's not inside a sequencer
 		   this is a dodgy solution, and should be made with a temporary unique ID so that it's 
@@ -284,8 +284,8 @@ function list(x,y,s)
 			}
 			
 		}
-		post("enableOscConnect: " + enableOscConnect + "\n");
-		post("enableStepConnect: " + enableStepConnect + "\n");
+		//post("enableOscConnect: " + enableOscConnect + "\n");
+		//post("enableStepConnect: " + enableStepConnect + "\n");
 	}
 	
 	
@@ -301,7 +301,7 @@ function setEnvDec(x,y)
 function setEnvAtt(x,y)
 {
 	var id = x+y;
-	envs[id] = this.patcher.newdefault(0,0, "[op]setEnvAtt", x,y,id);
+	envs[id] = this.patcher.newdefault(0,0, "[op]EnvAtt", x,y,id);
 	envnr++;
 	cellState[x][y] = cellState[x+1][y-1] = cellState[x+2][y-2] = 3;
 	cellID[x][y] = cellID[x+1][y-1] = cellID[x+2][y-2] = id; 

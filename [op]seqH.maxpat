@@ -119,7 +119,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
-					"outlettype" : [ "bang", "", "int" ],
+					"outlettype" : [ "bang", "int", "int" ],
 					"patching_rect" : [ 581.5, 403.0, 52.0, 20.0 ],
 					"text" : "t b #1 0"
 				}
@@ -353,7 +353,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 460.5, 436.0, 73.0, 20.0 ],
-					"text" : "pack 0 #3 2"
+					"text" : "pack 0 #3 5"
 				}
 
 			}
@@ -409,7 +409,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 385.0, 305.0, 50.0, 18.0 ],
-					"text" : "max 4"
+					"text" : "max 5"
 				}
 
 			}
@@ -491,8 +491,8 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 374.0, 581.0, 72.0, 20.0 ],
-					"text" : "s [pat]oscIn"
+					"patching_rect" : [ 374.0, 581.0, 94.0, 20.0 ],
+					"text" : "s [shapes]oscIn"
 				}
 
 			}
@@ -589,8 +589,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 345.0, 523.0, 186.0, 18.0 ],
-					"text" : "/shapes/grid/led/level/set $1 #3 2"
+					"patching_rect" : [ 345.0, 520.0, 186.0, 18.0 ],
+					"text" : "/shapes/grid/led/level/set $1 #3 5"
 				}
 
 			}
@@ -699,9 +699,9 @@
 					"fontsize" : 12.0,
 					"id" : "obj-1",
 					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
 					"patching_rect" : [ 8.0, 132.0, 109.0, 20.0 ],
 					"saved_object_attributes" : 					{
 						"filename" : "js_seqHPress.js",
@@ -714,24 +714,6 @@
 			}
  ],
 		"lines" : [ 			{
-				"patchline" : 				{
-					"destination" : [ "obj-15", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
-					"source" : [ "obj-1", 2 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-4", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
-					"source" : [ "obj-1", 1 ]
-				}
-
-			}
-, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-4", 2 ],
 					"disabled" : 0,
@@ -1108,14 +1090,6 @@
 					"source" : [ "obj-93", 0 ]
 				}
 
-			}
- ],
-		"dependency_cache" : [ 			{
-				"name" : "js_seqHPress.js",
-				"bootpath" : "/Users/sorenandreasen/max patches/_shapes",
-				"patcherrelativepath" : ".",
-				"type" : "TEXT",
-				"implicit" : 1
 			}
  ]
 	}

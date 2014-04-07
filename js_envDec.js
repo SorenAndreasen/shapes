@@ -17,11 +17,11 @@ function init(x,y,id)
 	offsetX = x;
 	offsetY = y;
 	ID = id;
-	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x, y, 4);
+	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x, y, 8);
 	outlet(1, "bang");
-	outlet(1,"set", ";","[shapes]oscIn","/shapes/grid/led/level/set", x+1, y+1, 4);
+	outlet(1,"set", ";","[shapes]oscIn","/shapes/grid/led/level/set", x+1, y+1, 8);
 	outlet(1, "bang");
-	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x+2, y+2, 4);
+	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x+2, y+2, 8);
 	outlet(1, "bang");
 }
 
