@@ -76,6 +76,7 @@ function press(x,y,val)
 			}
 			else if(c_==3) // change syncrate
 			{
+				post("changing syncrate in seqH");
 				outlet(2, syncRate[syncInd]);
 				syncInd++;
 				if(syncInd>7) syncInd=0;

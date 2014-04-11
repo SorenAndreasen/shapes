@@ -1,5 +1,5 @@
 inlets = 2;
-outlets = 8;
+outlets = 9;
 var c = 0;
 var start;
 var offsetX;
@@ -10,11 +10,12 @@ var firstY;
 var secondY;
 var ID;
 var isConnectedToEnv;
+var numberOfEnvConnected;
 
 function init(x,y, id)
 {
+	numberOfEnvConnected = 0;
 	start = 1;
-	isConnectedToEnv=0;
 	offsetX = x;
 	offsetY = y;
 	ID = id;
@@ -22,8 +23,6 @@ function init(x,y, id)
 
 function press(x,y,s)
 {
-
-
 	if(x==offsetX || x==offsetX+1) 
 	{
 
@@ -41,16 +40,18 @@ function press(x,y,s)
 				else if(s && x == offsetX+1 && y == offsetY+1) // connect to envelope
 				{
 
-					outlet(6, "set", ";", "[shapes]shapesIn", "oscConnect", ID, 1);
+					outlet(6, "set", ";", "[trig]triggersIn", "oscConnect", ID, 1, offsetX+1, offsetY+1);
 					outlet(6, "bang");
+
 				}
 			}
 			else if(c==0) 
 			{
 				if(x == offsetX+1 && y == offsetY+1) 
 				{
-					//outlet(6, "set", ";", "[shapes]shapesIn", "oscConnect", ID, 0);
-					//outlet(6, "bang");
+					//post("oscconnect on release");
+					outlet(6, "set", ";", "[trig]triggersIn", "oscConnect", ID, 0, offsetX+1, offsetY+1);
+					outlet(6, "bang");
 				}
 				start=1;
 				mode=0;
@@ -93,7 +94,7 @@ function press(x,y,s)
 
 				if(c==4) // mute osc
 				{
-					outlet(6, "set", ";", "[shapes]localOnOff"+ID, "bang");
+					outlet(6, "set", ";", "[trig]localOnOff"+ID, "bang");
 					outlet(6, "bang");
 				}
 			}
@@ -101,20 +102,38 @@ function press(x,y,s)
 		}
 
 	}
+
 }
 
-function connectEnv() // toggle between free mode and connected-to-env mode
+function envConnectionsNr(val) // toggle between free mode and connected-to-env mode (0 = free)
 {
-	if(isConnectedToEnv==0) 
+	post("osc:envConnectionsNr" + "\n");
+	if(val) numberOfEnvConnected++;
+	else numberOfEnvConnected--;
+
+	if(numberOfEnvConnected>0) outlet(7, 2);
+	else outlet(7, 1);	
+}
+
+function envConnector(envType, envID, x, y) // an envelope-connector is being pushed and now accessing this osc
+{
+	if(x == offsetX+1 && y == offsetY+1)
 	{
-		isConnectedToEnv = 1;
-		outlet(7, 2);	
+		outlet()
+	} 
+	else if(x == offsetX && y == offsetY)
+	{
+
 	}
-	else
+	else if(x == offsetX+1 && y == offsetY)
 	{
-		isConnectedToEnv = 0;
-		outlet(7, 1);	
+
+	}
+	else if(x == offsetX && y == offsetY+1)
+	{
 	}
 
 }
+
+
 

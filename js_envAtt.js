@@ -17,11 +17,11 @@ function init(x,y,id)
 	offsetX = x;
 	offsetY = y;
 	ID = id;
-	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x, y, 8);
+	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", x, y, 8);
 	outlet(1, "bang");
-	outlet(1,"set", ";","[shapes]oscIn","/shapes/grid/led/level/set", x+1, y-1, 8);
+	outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", x+1, y-1, 8);
 	outlet(1, "bang");
-	outlet(1,"set",";","[shapes]oscIn","/shapes/grid/led/level/set", x+2, y-2, 8);
+	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", x+2, y-2, 8);
 	outlet(1, "bang");
 }
 
@@ -41,14 +41,14 @@ function press(x,y,s)
 		post("c: " + c + " s: " + s + "\n");
 		if(c==1 && s) // set mode
 		{
-			if(x == offsetX+1 && y == offsetY-1) mode=1; // length
-			else if(x == offsetX+2 && y == offsetY-2) mode=2; // slope 
-			else if(x == offsetX && y == offsetY) 
+			if(x == offsetX+2 && y == offsetY-2) mode=1; // length
+			else if(x == offsetX && y == offsetY) mode=2; // slope 
+			else if(x == offsetX+1 && y == offsetY-1) 
 			{
 				envToSeq(1); // set in step
 			}
 		}
-		else if(c==0 && x == offsetX && y == offsetY) envToSeq(0); // set in seq
+		else if(c==0 && x == offsetX+1 && y == offsetY-1) envToSeq(0); // set in seq
 		else if(c==0) mode=0;
 
 		
@@ -84,21 +84,61 @@ function press(x,y,s)
 }
 function oscConnect(id, x, y) // osc --> shapes.js (to test cellState) --> here
 {
-	if(x==offsetX && y==offsetY) // if request was top leftmost button of env shape
+	if(x==offsetX+1 && y==offsetY-1) // if request was middle button of env shape
 	{
-		if(connectedOscs[id] == 0) connectedOscs[id] = 1;
-		else connectedOscs[id] = 0;
-
+		if(connectedOscs[id] == 0) 
+		{
+			connectedOscs[id] = 1;
+			lightUp(id);
+			outlet(1,"set",";","[trig]toGrid"+id, "envConnectionsNr", 1 ); // 1 = increase that oscs amount of connected envelopes
+			outlet(1, "bang");
+		}
+		else 
+		{
+			lightDown(id);
+			connectedOscs[id] = 0;
+			outlet(1,"set",";","[trig]toGrid"+id, "envConnectionsNr", 0 ); // 0 = decrease that oscs amount of connected envelopes
+			outlet(1, "bang");
+		}
 		outlet(0, "con", id, connectedOscs[id])
-		
-		//if(triggerID[triggerNr] == 0) triggerID = oscConnectID; // env is free, connect it with requesting osc
-		// triggerNr++;
-
 	}
 }
 
+
 function envToSeq(s) // here --> shapes --> step
 {
-	outlet(1,"set",";","[shapes]shapesIn", "envToSeq",2,ID, s); // 2 = attack
+	outlet(1,"set",";","[trig]triggersIn", "envToSeq",2,ID, s); // 2 = attack
 	outlet(1, "bang");
+}
+
+
+function lightUp(id) // light up envelope frame to show that it's connected to currently pressed osc (shapes--> here --> shapes)
+{ // id = id of the currently pressed osc
+	if(connectedOscs[id] == 1) // the currently pressed osc is connected to this envelope --> light it up to show!
+	{
+		post("lighting up env" + "\n");
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 15);
+		outlet(1, "bang");
+		outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY-1, 15);
+		outlet(1, "bang");
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY-2, 15);
+		outlet(1, "bang");
+
+		//outlet(1,"set", ";","[shapes]shapesIn","envLidState", ID, 1); // ID = this envelopes ID
+		//outlet(1, "bang");
+	}
+}
+
+function lightDown(id)
+{
+	if(connectedOscs[id] == 1)
+	{
+		post("dimming down env" + "\n");
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 8);
+		outlet(1, "bang");
+		outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY-1, 8);
+		outlet(1, "bang");
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY-2, 8);
+		outlet(1, "bang");	
+	}
 }
