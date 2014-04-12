@@ -21,12 +21,13 @@ var seqs = new Array(30); // gives unique (x+y) location-name to each seq instan
 var seqnr = 0;
 var envs = new Array(30);  // as above
 */
-
+var oscNr = 0; // current amount of osc operators
+var oscIDs = new Array(16);
 var envDecNr = 0; // current amount of decay envelope operators
 var envAttNr = 0; // current amount of attack envelope operators
 var envDecIds = new Array(8);
 var envAttIds = new Array(8);
-var envLidStates = new Array(30); // variable to store wether the envelope lightUp is active or not
+var envLidStates = new Array(30); // variable to store wether the envelope lightUpEnv is active or not
 
 
 //// new operator storing/removing system:
@@ -53,8 +54,8 @@ var secondX;
 var secondY;
 
 var mode = 1; // 1 = edit / 0 = play
-var enableOscConnect;
-var enableStepConnect;
+var oscConnectMode;
+var envConnectMode;
 var tempConnectButtonX;
 var tempConnectButtonY;
 
@@ -83,12 +84,12 @@ function init()
 	envConnectID = 0;
 	envConnectType = 0;
 	start = 0;
-	enableStepConnect = 0;
-	enableOscConnect = 0;
+	envConnectMode = 0;
+	oscConnectMode = 0;
 	mode=1;
 	outlet(0, "set", ";", "[trig]toGrid", "/trig/grid/led/set", 0, 7, 1);
 	outlet(0, "bang");
-	// post("connects" + enableStepConnect + enableOscConnect);
+	// post("connects" + envConnectMode + oscConnectMode);
 }
 function list(x,y,s) 
 {
@@ -117,13 +118,13 @@ function list(x,y,s)
 
 	if(c == 1 && start == 0) // 1st press location and start flag
 	{
-		post("settings first X");
+		//post("settings first X");
 		start = 1; 
 		firstX = x; 
 		firstY = y;
 	}
-	post("c: " + c + "\n");
-	post("start: " + start + "\n");
+	//post("c: " + c + "\n");
+	//post("start: " + start + "\n");
 
 	
 
@@ -199,7 +200,7 @@ function list(x,y,s)
 					}
 					else if(sum==length*5) // already seq = DELETE:
 					{
-						delSeqV(firstX, topmostY, length);
+						//delSeqV(firstX, topmostY, length);
 					}
 
 				}
@@ -236,7 +237,7 @@ function list(x,y,s)
 				else if(shape==273)  // decay env	
 				{
 					setEnvDec(minx,miny); 
-					post("setting env dec at: min max: " + minx + " " + miny + "\n");
+				//	post("setting env dec at: min max: " + minx + " " + miny + "\n");
 				}
 				else if(shape==84) // attack env	
 				{
@@ -258,24 +259,34 @@ function list(x,y,s)
 
 	else 
 	{
-		//post("pre:: enableOscConnect: " + enableOscConnect + "\n");
-		//post("pre:: enableStepConnect: " + enableStepConnect + "\n");
-
-		/* abort stepConnect mode if a button is being released that's not inside a sequencer
-		   this is a dodgy solution, and should be made with a temporary unique ID so that it's 
-		   only aborted when the actual stepConnect-button that's being pressed (inside the envelope)
-		   is being released: */
+		//post("pre:: oscConnectMode: " + oscConnectMode + "\n");
+		//post("pre:: envConnectMode: " + envConnectMode + "\n");
+/*
+		
 		   post("!!!!!!!!!" + "\n");
 		   post("s: " + s + "\n");
 		   post("cellstate: " + x + " " + y + cellState[x][y] + "\n");
-		   post("enableStepConnect: " + enableStepConnect + "\n");
+		   post("envConnectMode: " + envConnectMode + "\n");
 		   post("!!!!!!!!!" + "\n");
-		if(s==0 && cellState[x][y] != 4 && cellState[x][y] != 5 && enableStepConnect) 
-		{
-			// firstX == tempConnectButtonX && firstY == tempConnectButtonY 
-			enableStepConnect = 0; // release stepconnect enabler
-		}
 
+	    /* abort envConnect mode if a button is being released inside an envelope
+	    this is a dodgy solution, and should be made with a temporary unique ID so that it's 
+	    only aborted when the active envconnect-button that's being pressed (inside the envelope): */
+		if(s==0 && envConnectMode )
+		{
+			if(cellState[x][y] == 2 || cellState[x][y] == 3) // 2, 3 = envelopes
+			{
+					// firstX == tempConnectButtonX && firstY == tempConnectButtonY 
+				envConnectMode = 0; // release stepconnect enabler
+				for(i=0;i<oscNr;i++)
+				{
+					outlet(0,"set",";","[trig]oscIn"+oscIDs[i], "osc_lightDown"); 
+					outlet(0, "bang");
+				}
+			}
+
+		} 
+	
 		/* abort oscConnect-mode when an osc button is released. this is a DODGY solution, and should be
 		   made with a temporary unique ID so that it's only aborted when the osc-connect-button that's actually
 		   being pressed, is released: */
@@ -287,57 +298,57 @@ function list(x,y,s)
 	
 		}
 
-		if(s==0 && cellState[x][y] == 1 && enableOscConnect) enableOscConnect = 0;  // release oscconnect enabler
+		if(s==0 && cellState[x][y] == 1 && oscConnectMode) oscConnectMode = 0;  // release oscConnect enabler
 
 
 		//////////////// to operators js in \\\\\\\\\\\\\\
-		if(enableStepConnect==0 && enableOscConnect==0) 
+		if(envConnectMode==0 && oscConnectMode==0) 
 		{ // only send raw presses to operators if no connector buttons are being held
 			outlet(0, "set", ";", "[trig]fromGrid", x,y,s);
 			outlet(0, "bang");
 		}
 		///////////////// \\\\\\\\\\\\\\\\\\\\\\\\\
 
-	
-		if(s && enableOscConnect) // connect osc to envelope
+		/*
+		if(s && oscConnectMode) // osc connecter, activated
 		{
 			if(cellState[x][y] == 2) // if pushing a decay envelope position
 			{
-				outlet(0, "set", ";", "[trig]envDecIn"+cellID[x][y], "oscConnect", oscConnectID, x, y)
+				outlet(0, "set", ";", "[trig]envDecIn"+cellID[x][y], "envDec_oscConnect", oscConnectID, x, y)
 				outlet(0, "bang");
 
 			}
 			else if(cellState[x][y] == 3) // if puhsing attack env
 			{
-				outlet(0, "set", ";", "[trig]envAttIn"+cellID[x][y], "oscConnect", oscConnectID, x, y)
+				outlet(0, "set", ";", "[trig]envAttIn"+cellID[x][y], "envAtt_oscConnect", oscConnectID, x, y)
 				outlet(0, "bang");
 
 			}
-		}
-		else if(s && enableStepConnect) // envelope-connector, activated:
+		} */
+
+		if(s && envConnectMode) // envelope-connector, activated:
 		{
-			if(cellState[x][y] == 5) // if pushing a seqV position
+			if(cellState[x][y] == 5) // if pushing a seqV
 			{
 				outlet(0, "set", ";", "[trig]SeqVIn"+cellID[x][y],"setStep", envConnectType, envConnectID, y)
 				outlet(0, "bang");
 			}
-			else if(cellState[x][y] == 4) // if pushing a seqH position
+			else if(cellState[x][y] == 4) // if pushing a seqH 
 			{
 				outlet(0, "set", ";", "[trig]SeqHIn"+cellID[x][y],"setStep", envConnectType, envConnectID, x)
 				outlet(0, "bang");
 			}
-			/*
-			else if(cellState[x][y] == 1) // pushing an osc
+			else if(cellState[x][y] == 1) // if pushing an osc
 			{
-				outlet(0, "set", ";", "[shapes]toGrid"+cellID[x][y],"envConnector", envConnectType, envConnectID, x, y)
+				post("envConnectType: " + envConnectType + "\n");
+				outlet(0, "set", ";", "[trig]oscIn"+cellID[x][y],"osc_connectToEnv", envConnectType, envConnectID, x,y)
 				outlet(0, "bang");
 			}
-			*/
 			
 		}
 		
-		//post("enableOscConnect: " + enableOscConnect + "\n");
-		//post("enableStepConnect: " + enableStepConnect + "\n");
+		//post("oscConnectMode: " + oscConnectMode + "\n");
+		//post("envConnectMode: " + envConnectMode + "\n");
 		
 	}
 
@@ -346,12 +357,14 @@ function list(x,y,s)
 
 
 
-////////////////////////////////////////////////////////////////////////////////// set/delete operators functions: /////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////// set/delete operator functions: /////////////////////////////////////////////////////////////////////////
 
 
 function setOsc(x,y){
 	var id = makeID();
 	ops[id] = this.patcher.newdefault(0,0,"[op]osc", x, y, id);
+	oscIDs[oscNr] = id;
+	oscNr++;
 	cellState[x][y] = cellState[x+1][y] = cellState[x][y+1] = cellState[x+1][y+1] = 1;
 	cellID[x][y] = cellID[x+1][y] = cellID[x][y+1] = cellID[x+1][y+1] = id;
 }	
@@ -377,7 +390,7 @@ function setEnvAtt(x,y){
 function setSeqH(x,y, length){
 	var id = makeID();
 	ops[id] = this.patcher.newdefault(0,0, "[op]seqH",x,length,y,id);
-	for(i=0;i<length;i++) // fill cellState with seq type (2)
+	for(i=0;i<length;i++) // fill cellState with seqH type, 4
 	{
 		cellState[i+x][y] = 4;
 		cellID[i+x][y] = id;
@@ -387,8 +400,8 @@ function setSeqH(x,y, length){
 function setSeqV(x,y,length){
 	var id = makeID();
 	ops[id] = this.patcher.newdefault(0,0, "[op]seqV",x,length,y,id);
-	
-	for(i=0;i<length;i++) // fill cellState with seq type (2)
+	post("lol");
+	for(i=0;i<length;i++) // fill cellState with seqV type, 5
 	{
 		cellState[x][i+y] = 5;	
 		cellID[x][i+y] = id;
@@ -398,14 +411,14 @@ function setSeqV(x,y,length){
 
 function delOsc(x,y){
 	var thisID = cellID[x][y];
-	post("on delete osc: thisID: " + thisID + "\n");
+	//post("on delete osc: thisID: " + thisID + "\n");
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
 
 	outlet(0, "set", ";", "[trig]OscOnOff"+thisID, 0);
 	outlet(0, "bang");
 	this.patcher.remove(ops[thisID])
-
+	oscNr--;
 	cellState[x][y] = cellState[x+1][y] = cellState[x][y+1] = cellState[x+1][y+1] = 0;
 }
 
@@ -459,9 +472,10 @@ function delEnvAtt(x,y){
 
 ///////// interaction between operators /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-function oscConnect(id, state,xxx,yyy) // osc --> here (setting oscconnect enable mode to active) --> envelope (if next press is correct positino)
-{	
+/*
+function triggers_oscConnect(id, state,xxx,yyy) // osc --> here (setting oscConnect enable mode to active) --> envelope (if next press is correct positino)
+{	///////  THIS FUNCTION IS ONLY NEEDED IF THE OSC OP IS SUPPOSED TO HAVE A CONNECT/lightUpEnv-ENV FUNCTION!
+	/*
 	post("state: " + state + "\n");
 	post("S: " + S + "\n");
 	post("c: " + c + "\n");
@@ -469,10 +483,10 @@ function oscConnect(id, state,xxx,yyy) // osc --> here (setting oscconnect enabl
 	post("firstY: " + firstY + "\n");
 	post("xxx: " + xxx + "\n");
 	post("yyy: " + yyy + "\n");
-
+*/ /*
 
 	oscConnectID = id;
-	enableOscConnect=state;
+	oscConnectMode = state;
 
 
 
@@ -480,13 +494,13 @@ function oscConnect(id, state,xxx,yyy) // osc --> here (setting oscconnect enabl
 	{
 		for(i=0; i<=envDecNr;i++)
 		{
-			post("lightup on: " + envDecIds[i] + "\n");
-			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "lightUp", oscConnectID);
+			post("lightUpEnv on: " + envDecIds[i] + "\n");
+			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "envDec_lightUp", oscConnectID);
 			outlet(0, "bang");
 		}
 		for(i=0; i<=envAttNr;i++)
 		{
-			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "lightUp", oscConnectID);
+			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "envAtt_lightUp", oscConnectID);
 			outlet(0, "bang");
 		}
 	}
@@ -495,35 +509,60 @@ function oscConnect(id, state,xxx,yyy) // osc --> here (setting oscconnect enabl
 
 		for(i=0; i<=envDecNr;i++)
 		{
-			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "lightDown", oscConnectID);
+			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "envDec_lightDown", oscConnectID);
 			outlet(0, "bang");
 		}
 		for(i=0; i<=envAttNr;i++)
 		{
-			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "lightDown", oscConnectID);
+			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "envAtt_lightDown", oscConnectID);
 			outlet(0, "bang");
 		}	
 	}
-	
-
-	
 }
+*/
+function triggers_envConnect(type, envID,state, tempX, tempY) // envelope --> here --> step/osc/.. ?? 
+{
 
-function envLidState(id, state)
-{
-	envLidStates[id] = state;
-}
-function envToSeq(type, envID,s, tempX, tempY) // envelope --> here --> step
-{
+	// in here it should send out to ALL osc and ask if the requesting env is connected, thus light up
+
 	tempConnectButtonX = tempX;
 	tempConnectButtonY = tempY;
 	envConnectType = type;
 	envConnectID = envID;
-	if(s)enableStepConnect=1;
-	else enableStepConnect=0;
+	if(state)envConnectMode=1;
+	else envConnectMode=0;
+/*
+	post("envConnect - s: " + state + "\n");
+	post("envConnect - c: " + c + "\n");
+	post("envConnect - firstX: " + firstX + "\n");
+	post("envConnect - firstY: " + firstY + "\n");
+	post("envConnect - tempX: " + tempX + "\n");
+	post("envConnect - tempY: " + tempY + "\n");
+	*/
+//	post("triggers_envConnect" + "\n");
 
+	if(state) 
+	{
+		for(i=0; i<oscNr;i++)
+		{
+			//post("oscIds " + i + " " + oscIDs[i] + "\n");
 
-	//post("inside shapes-envToSeq: enableStepConnect: " + enableStepConnect + "\n");
+			//post("envConnect - oscIn i" + i + " : " + oscIDs[i] + "\n");
+			outlet(0, "set", ";", "[trig]oscIn"+oscIDs[i], "osc_lightUp", envID);
+			outlet(0, "bang");
+		}
+		
+	}
+	else if(state==0 && c==0 && firstX == tempX+1 && firstY == tempY+1) // only on connector-release
+	{
+		for(i=0; i<oscNr;i++)
+		{
+			outlet(0, "set", ";", "[trig]oscIn"+oscIDs[i], "osc_lightDown");
+			outlet(0, "bang");
+		}
+		
+	}
+	//post("inside shapes-envConnect: envConnectMode: " + envConnectMode + "\n");
 	/*
 	if(cellState[x][y] == 2) // is there a seq here?
 	{
@@ -533,6 +572,12 @@ function envToSeq(type, envID,s, tempX, tempY) // envelope --> here --> step
 	}
 	*/
 }
+
+function envLidState(id, state)
+{
+	envLidStates[id] = state;
+}
+
 
 
 
@@ -548,8 +593,8 @@ function combine(a, b)
 
 function reportConnectorStates()
 {
-	post("oscConnector: " + enableOscConnect + "\n");
-	post("stepConnector: " + enableStepConnect + "\n");
+	post("oscConnector: " + oscConnectMode + "\n");
+	post("stepConnector: " + envConnectMode + "\n");
 }
 
 
