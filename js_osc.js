@@ -1,5 +1,5 @@
 inlets = 2;
-outlets = 12;
+outlets = 11;
 var c = 0;
 var start;
 var offsetX;
@@ -12,6 +12,9 @@ var ID;
 var isConnectedToEnv;
 var numberOfAmpEnvConnected;
 var numberOfPitchEnvConnected;
+var numberOfWaveEnvConnected;
+var numberOfFMEnvConnected;
+
 var connectedEnvsAmp = new Array(30);
 var connectedEnvsPitch = new Array(30);
 var connectedEnvsWave = new Array(30);
@@ -29,6 +32,8 @@ function init(x,y, id)
 	modeFMdepth = 0;
 	numberOfAmpEnvConnected = 0;
 	numberOfPitchEnvConnected = 0;
+	numberOfFMEnvConnected = 0;
+	numberOfWaveEnvConnected = 0;
 	start = 1;
 	offsetX = x;
 	offsetY = y;
@@ -134,8 +139,8 @@ function osc_envAmpConnectionsNr(val) // toggle between free mode and connected-
 	if(val) numberOfAmpEnvConnected++;
 	else numberOfAmpEnvConnected--;
 
-	if(numberOfAmpEnvConnected>0) outlet(9, 2);
-	else outlet(9, 1);	
+	if(numberOfAmpEnvConnected>0) outlet(9,"amp", 2);
+	else outlet(9,"amp", 1);	
 }
 function osc_envPitchConnectionsNr(val)
 {
@@ -143,9 +148,28 @@ function osc_envPitchConnectionsNr(val)
 	if(val) numberOfPitchEnvConnected++;
 	else numberOfPitchEnvConnected--;
 
-	if(numberOfPitchEnvConnected>0) outlet(11, 2);
-	else outlet(11, 1);	
+	if(numberOfPitchEnvConnected>0) outlet(9,"pitch", 2);
+	else outlet(9,"pitch", 1);	
 }
+function osc_envWaveConnectionsNr(val)
+{
+	//post("osc:envConnectionsNr" + "\n");
+	if(val) numberOfWaveEnvConnected++;
+	else numberOfWaveEnvConnected--;
+
+	if(numberOfWaveEnvConnected>0) outlet(9,"wave", 2);
+	else outlet(9,"wave", 1);	
+}
+function osc_envFMConnectionsNr(val)
+{
+	//post("osc:envConnectionsNr" + "\n");
+	if(val) numberOfFMEnvConnected++;
+	else numberOfFMEnvConnected--;
+
+	if(numberOfFMEnvConnected>0) outlet(9,"fm", 2);
+	else outlet(9,"fm", 1);	
+}
+
 function osc_connectToEnv(envType, envID, x, y) 
 { // triggers.js --> an envelope-connector is being pushed and now accessing this osc
 	if(x == offsetX+1 && y == offsetY+1) // amp
@@ -184,11 +208,69 @@ function osc_connectToEnv(envType, envID, x, y)
 	} 
 	else if(x == offsetX && y == offsetY) // wavetype
 	{
-		// same as above
+		if(envType==1) // decay
+		{
+			if(connectedEnvsWave[envID] == 0)
+			{
+				connectedEnvsWave[envID] = 1;
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,1);
+				outlet(8, "bang")
+			}
+			else
+			{
+				connectedEnvsWave[envID] = 0;
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,1);
+				outlet(8, "bang")
+			}
+		}
+		else // attack
+		{
+			if(connectedEnvsWave[envID] == 0)
+			{
+				connectedEnvsWave[envID] = 1;
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,1);
+				outlet(8, "bang")
+			}
+			else
+			{
+				connectedEnvsWave[envID] = 0;
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,1);
+				outlet(8, "bang")
+			}
+		}
 	}
-	else if(x == offsetX+1 && y == offsetY) // fm ??
+	else if(x == offsetX+1 && y == offsetY) // fm (depth)
 	{
-		// same as above
+		if(envType==1) // decay
+		{
+			if(connectedEnvsFM[envID] == 0)
+			{
+				connectedEnvsFM[envID] = 1;
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,3);
+				outlet(8, "bang")
+			}
+			else
+			{
+				connectedEnvsFM[envID] = 0;
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,3);
+				outlet(8, "bang")
+			}
+		}
+		else // attack
+		{
+			if(connectedEnvsFM[envID] == 0)
+			{
+				connectedEnvsFM[envID] = 1;
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,3);
+				outlet(8, "bang")
+			}
+			else
+			{
+				connectedEnvsFM[envID] = 0;
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,3);
+				outlet(8, "bang")
+			}
+		}
 	}
 	else if(x == offsetX && y == offsetY+1) // pitch
 	{

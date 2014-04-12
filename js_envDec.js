@@ -115,6 +115,27 @@ function envDec_oscConnect(id, x, y, oscMode)
 
 		outlet(0, "con", "pitch",id, 1) // set that oscs id in local pitch coll here here to 1
 	}
+	else if(oscMode==1) // wavetype
+	{
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightUp", ID ); // this lightup call maybe one too many?
+		outlet(1, "bang")
+
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_envWaveConnectionsNr", 1 ); //increase that oscs amount of connected envelopes
+		outlet(1, "bang");
+
+		outlet(0, "con", "wave", id, 1) // set that oscs id in local amp coll here to 1
+
+	}
+	else if(oscMode==3) // FM (depth)
+	{
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightUp", ID ); // this lightup call maybe one too many?
+		outlet(1, "bang")
+
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_envFMConnectionsNr", 1 ); //increase that oscs amount of connected envelopes
+		outlet(1, "bang");
+
+		outlet(0, "con", "fm", id, 1) // set that oscs id in local amp coll here to 1
+	}
 }
 function envDec_oscDisconnect(id,x,y, oscMode)
 {
@@ -126,17 +147,38 @@ function envDec_oscDisconnect(id,x,y, oscMode)
 		outlet(1,"set",";","[trig]oscIn"+id, "osc_envAmpConnectionsNr", 0 ); //decrease that oscs amount of connected envelopes
 		outlet(1, "bang");
 
-		outlet(0, "con", id, 0) // set that oscs id in local amp coll here to 0
+		outlet(0, "con", "amp", id, 0) // set that oscs id in local amp coll here to 0
 	}
 	else if(oscMode==2) // pitch
 	{
-		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightDown", ID ); // this lightup call maybe one too many?
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightDown", ID ); 
 		outlet(1, "bang")
 
-		outlet(1,"set",";","[trig]oscIn"+id, "osc_envPitchConnectionsNr", 0 ); //decrease that oscs amount of connected envelopes
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_envPitchConnectionsNr", 0 ); 
 		outlet(1, "bang");
 
-		outlet(0, "con", "pitch",id, 0) // set that oscs id in local pitch coll here here to 0
+		outlet(0, "con", "pitch",id, 0);
+	}
+	else if(oscMode==1) // wavetype
+	{
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightUp", ID ); 
+		outlet(1, "bang")
+
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_envWaveConnectionsNr", 0 );
+		outlet(1, "bang");
+
+		outlet(0, "con", "wave", id, 0) 
+
+	}
+	else if(oscMode==3) // FM (depth)
+	{
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_lightUp", ID ); 
+		outlet(1, "bang")
+
+		outlet(1,"set",";","[trig]oscIn"+id, "osc_envFMConnectionsNr", 0 ); 
+		outlet(1, "bang");
+
+		outlet(0, "con", "fm", id, 0);
 	}
 }
 
