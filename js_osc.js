@@ -1,5 +1,5 @@
 inlets = 2;
-outlets = 10;
+outlets = 12;
 var c = 0;
 var start;
 var offsetX;
@@ -16,7 +16,7 @@ var connectedEnvsAmp = new Array(30);
 var connectedEnvsPitch = new Array(30);
 var connectedEnvsWave = new Array(30);
 var connectedEnvsFM = new Array(30);
-
+var modeFMdepth;
 function init(x,y, id)
 {
 	for(i=0;i<30;i++) 
@@ -26,7 +26,7 @@ function init(x,y, id)
 		connectedEnvsWave[i]=0;
 		connectedEnvsFM[i]=0;
 	}
-	
+	modeFMdepth = 0;
 	numberOfAmpEnvConnected = 0;
 	numberOfPitchEnvConnected = 0;
 	start = 1;
@@ -51,31 +51,20 @@ function press(x,y,s)
 				if(s && x == offsetX && y == offsetY) mode=1; // wave
 				else if(s && x == offsetX && y == offsetY+1) mode=2;// pitch
 				else if(s && x == offsetX+1 && y == offsetY) mode=3; // FM
-				else if(s && x == offsetX+1 && y == offsetY+1) // connect to envelope  
-				{
-					//(volume-mode(4) instead of connetor ??)
-
-					//outlet(6, "set", ";", "[trig]triggersIn", "triggers_oscConnect", ID, 1, offsetX+1, offsetY+1);
-					//outlet(6, "bang");
-
-				}
+				else if(s && x == offsetX+1 && y == offsetY+1) mode=4;// amp
 			}
 			else if(c==0) 
 			{
-				if(x == offsetX+1 && y == offsetY+1) 
-				{
-					//post("oscConnect on release");
-					//outlet(6, "set", ";", "[trig]triggersIn", "triggers_oscConnect", ID, 0, offsetX+1, offsetY+1);
-					//outlet(6, "bang");
-				}
 				start=1;
 				mode=0;
+				modeFMdepth=0;
 			}
 		
 
 			// change params, in active mode
 			if(mode==1) // wave
 			{	
+				modeFMdepth=0;
 				if(s && x==offsetX+1 && y==offsetY) outlet(0, 1); // INC press
 				else if(s==0 && x==offsetX+1 && y==offsetY) outlet(0, 0); // INC release
 				else if(s && x==offsetX+1 && y==offsetY+1) outlet(1, 1); // DEC press
@@ -83,22 +72,39 @@ function press(x,y,s)
 			}
 			else if(mode==2) // pitch
 			{
+				modeFMdepth=0;
 				if(s && x==offsetX+1 && y==offsetY) outlet(2, 1); // INC press
 				else if(s==0 && x==offsetX+1 && y==offsetY) outlet(2, 0); // INC release
 				else if(s && x==offsetX+1 && y==offsetY+1) outlet(3, 1); // DEC press
 				else if(s==0 && x==offsetX+1 && y==offsetY+1) outlet(3, 0); // DEC release
 
 			}
-			else if(mode==3) // FM
+			else if(mode==3 && modeFMdepth == 0) // FM
 			{
-				if(s && x==offsetX && y==offsetY) outlet(4, 1); // INC press
-				else if(s==0 && x==offsetX && y==offsetY) outlet(4, 0); // INC release
-				else if(s && x==offsetX && y==offsetY+1) outlet(5, 1); // DEC press
-				else if(s==0 && x==offsetX && y==offsetY+1) outlet(5, 0); // DEC release
-
+	
+				if(s && x==offsetX && y==offsetY) outlet(4, "freq", 1); // INC mod freq press
+				else if(s==0 && x==offsetX && y==offsetY) outlet(4,"freq", 0); // INC mod freq release
+				else if(s && x==offsetX && y==offsetY+1) outlet(5,"freq", 1); // DEC mod freq press
+				else if(s==0 && x==offsetX && y==offsetY+1) outlet(5,"freq", 0); // DEC mod freq release
+				else if(s && x==offsetX+1 && y==offsetY+1) modeFMdepth=1; // modulation depth:
+			}
+			else if(mode==4) // amp
+			{
+				modeFMdepth=0;
+				if(s && x==offsetX && y==offsetY) outlet(6, 1); // INC press
+				else if(s==0 && x==offsetX && y==offsetY) outlet(6, 0); // INC release
+				else if(s && x==offsetX && y==offsetY+1) outlet(7, 1); // DEC press
+				else if(s==0 && x==offsetX && y==offsetY+1) outlet(7, 0); // DEC release
+			}
+			if(modeFMdepth)
+			{
+				if(s && x==offsetX && y==offsetY) outlet(4,"dept", 1); // INC mod dept press
+				else if(s==0 && x==offsetX && y==offsetY) outlet(4,"dept", 0); // INC mod dept release
+				else if(s && x==offsetX && y==offsetY+1) outlet(5,"dept", 1); // DEC mod dept press
+				else if(s==0 && x==offsetX && y==offsetY+1) outlet(5,"dept", 0); // DEC mod dept release
 			}
 
-			if(c>2) // too many pushes --> release all
+			if(c>2 && modeFMdepth == 0) // too many pushes --> release all
 			{
 				outlet(0, 0);
 				outlet(1, 0);
@@ -106,6 +112,8 @@ function press(x,y,s)
 				outlet(3, 0);
 				outlet(4, 0);
 				outlet(5, 0);
+				outlet(6, 0);
+				outlet(7, 0);
 
 				if(c==4) // mute osc
 				{
@@ -126,8 +134,8 @@ function osc_envAmpConnectionsNr(val) // toggle between free mode and connected-
 	if(val) numberOfAmpEnvConnected++;
 	else numberOfAmpEnvConnected--;
 
-	if(numberOfAmpEnvConnected>0) outlet(7, 2);
-	else outlet(7, 1);	
+	if(numberOfAmpEnvConnected>0) outlet(9, 2);
+	else outlet(9, 1);	
 }
 function osc_envPitchConnectionsNr(val)
 {
@@ -135,8 +143,8 @@ function osc_envPitchConnectionsNr(val)
 	if(val) numberOfPitchEnvConnected++;
 	else numberOfPitchEnvConnected--;
 
-	if(numberOfPitchEnvConnected>0) outlet(9, 2);
-	else outlet(9, 1);	
+	if(numberOfPitchEnvConnected>0) outlet(11, 2);
+	else outlet(11, 1);	
 }
 function osc_connectToEnv(envType, envID, x, y) 
 { // triggers.js --> an envelope-connector is being pushed and now accessing this osc
@@ -147,14 +155,14 @@ function osc_connectToEnv(envType, envID, x, y)
 			if(connectedEnvsAmp[envID] == 0)
 			{
 				connectedEnvsAmp[envID] = 1;
-				outlet(6, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,4);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,4);
+				outlet(8, "bang")
 			}
 			else
 			{
 				connectedEnvsAmp[envID] = 0;
-				outlet(6, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,4);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,4);
+				outlet(8, "bang")
 			}
 		}
 		else // attack
@@ -162,14 +170,14 @@ function osc_connectToEnv(envType, envID, x, y)
 			if(connectedEnvsAmp[envID] == 0)
 			{
 				connectedEnvsAmp[envID] = 1;
-				outlet(6, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,4);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,4);
+				outlet(8, "bang")
 			}
 			else
 			{
 				connectedEnvsAmp[envID] = 0;
-				outlet(6, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,4);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,4);
+				outlet(8, "bang")
 			}
 		}
 		
@@ -189,14 +197,14 @@ function osc_connectToEnv(envType, envID, x, y)
 			if(connectedEnvsPitch[envID] == 0)
 			{
 				connectedEnvsPitch[envID] = 1;
-				outlet(6, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,2);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscConnect", ID,x,y,2);
+				outlet(8, "bang")
 			}
 			else
 			{
 				connectedEnvsPitch[envID] = 0;
-				outlet(6, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,2);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envDecIn"+envID, "envDec_oscDisconnect", ID,x,y,2);
+				outlet(8, "bang")
 			}
 		}
 		else // attack
@@ -204,14 +212,14 @@ function osc_connectToEnv(envType, envID, x, y)
 			if(connectedEnvsPitch[envID] == 0)
 			{
 				connectedEnvsPitch[envID] = 1;
-				outlet(6, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,2);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscConnect", ID,x,y,2);
+				outlet(8, "bang")
 			}
 			else
 			{
 				connectedEnvsPitch[envID] = 0;
-				outlet(6, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,2);
-				outlet(6, "bang")
+				outlet(8, "set", ";", "[trig]envAttIn"+envID, "envAtt_oscDisconnect", ID,x,y,2);
+				outlet(8, "bang")
 			}
 		}
 	}
@@ -222,45 +230,45 @@ function osc_connectToEnv(envType, envID, x, y)
 
 function osc_lightUp(id)
 {
-	outlet(8, 0); // close gate for pitch anim
+	outlet(10, 0); // close gate for pitch anim
 
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 5);
-	outlet(6, "bang");	
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY, 5);
-	outlet(6, "bang");	
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY+1, 5);
-	outlet(6, "bang");	
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 5);
-	outlet(6, "bang");	
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 5);
+	outlet(8, "bang");	
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY, 5);
+	outlet(8, "bang");	
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY+1, 5);
+	outlet(8, "bang");	
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 5);
+	outlet(8, "bang");	
 
 	if(connectedEnvsAmp[id]==1)
 	{
 		//outlet(8, 0); // close gate for pitch anim
 		//post("lightUpOsc - amp" + "\n");
-		outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 10);
-		outlet(6, "bang");	
+		outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 10);
+		outlet(8, "bang");	
 
 	}
 	if(connectedEnvsPitch[id]==1)
 	{
 		//outlet(8, 0); // close gate for pitch anim
 		//post("lightUpOsc - pitch" + "\n");
-		outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY+1, 10);
-		outlet(6, "bang");
+		outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY+1, 10);
+		outlet(8, "bang");
 	}
 	if(connectedEnvsWave[id]==1)
 	{
 		//outlet(8, 0); // close gate for pitch anim
 		//post("lightUpOsc - wave" + "\n");
-		outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 10);
-		outlet(6, "bang");
+		outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 10);
+		outlet(8, "bang");
 	}
 	if(connectedEnvsFM[id]==1)
 	{
 		//outlet(8, 0); // close gate for pitch anim
 		//post("lightUpOsc - FM" + "\n");
-		outlet(6,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY, 10);
-		outlet(6, "bang");
+		outlet(8,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY, 10);
+		outlet(8, "bang");
 	}
 	
 
@@ -268,16 +276,16 @@ function osc_lightUp(id)
 function osc_lightDown()
 {
 	//post("lightDownOsc" + "\n");
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX, offsetY, 0);
-	outlet(6, "bang");
-	outlet(6,"set", ";","[trig]toGrid","/trig/grid/led/set", offsetX+1, offsetY, 0);
-	outlet(6, "bang");
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX, offsetY+1, 0);
-	outlet(6, "bang");
-	outlet(6,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX+1, offsetY+1, 0);
-	outlet(6, "bang");	
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX, offsetY, 0);
+	outlet(8, "bang");
+	outlet(8,"set", ";","[trig]toGrid","/trig/grid/led/set", offsetX+1, offsetY, 0);
+	outlet(8, "bang");
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX, offsetY+1, 0);
+	outlet(8, "bang");
+	outlet(8,"set",";","[trig]toGrid","/trig/grid/led/set", offsetX+1, offsetY+1, 0);
+	outlet(8, "bang");	
 	
-	outlet(8, 1); // open gate for pitch anim
+	outlet(10, 1); // open gate for pitch anim
 }
 
 
