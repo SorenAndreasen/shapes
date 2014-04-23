@@ -61,10 +61,11 @@ var tempConnectButtonY;
 
 for (var i = 0; i<32; i++) { 							
     now[i] = new Array(32); //  make press-array contain y-info as well
+}
+for (var i = 0; i<16; i++) { 							
     cellState[i] = new Array(32); // make cell-array contain if cellState are used/free
     cellID[i] = new Array(32);
     // init cell array x+y
-
 }
 for (var i = 0; i<32; i ++)
 {
@@ -77,7 +78,8 @@ for (var i = 0; i<32; i ++)
 }
 
 function init()
-{	op_id = 1;
+{	
+	op_id = 1;
 	numberOfDeletedOps = 0;
 
 	oscConnectID = 0;
@@ -236,12 +238,14 @@ function list(x,y,s)
 				}
 				else if(shape==273)  // decay env	
 				{
-					setEnvDec(minx,miny); 
+					if(cellState[minx][miny] == 0 && cellState[minx+1][miny+1] == 0 && cellState[minx+2][miny+2] == 0) setEnvDec(minx,miny); 
+					else if(cellState[minx][miny] == 2 && cellState[minx+1][miny+1] == 2 && cellState[minx+2][miny+2] == 2) delEnvDec(minx,miny);
 				//	post("setting env dec at: min max: " + minx + " " + miny + "\n");
 				}
 				else if(shape==84) // attack env	
 				{
-					setEnvAtt(minx, miny+2); 
+					if(cellState[minx][miny+2] == 0 && cellState[minx+1][miny+1] == 0 && cellState[minx+2][miny] == 0) setEnvAtt(minx,miny+2); 
+					else if(cellState[minx][miny+2] == 3 && cellState[minx+1][miny+1] == 3 && cellState[minx+2][miny] == 3) delEnvAtt(minx,miny+2);
 				}
 
 			}
@@ -449,12 +453,17 @@ function delSeqV(x,y,length){
 }
 
 function delEnvDec(x,y){
+
 	var thisID = cellID[x][y];
+	post("del env dec. thisID: " + thisID + "\n");
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
 
-	this.patcher.remove(ops[thisID]);
+	outlet(0, "set", ";", "[trig]envDecIn"+thisID, "envDec_deleteThis");
+	outlet(0, "bang");
 
+	envDecNr--;
+	this.patcher.remove(ops[thisID]);
 	cellState[x][y] = cellState[x+1][y+1] = cellState[x+2][y+2] = 0;
 }
 
@@ -462,9 +471,10 @@ function delEnvAtt(x,y){
 	var thisID = cellID[x][y];
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-
+	outlet(0, "set", ";", "[trig]envAttIn"+thisID, "envAtt_deleteThis");
+	outlet(0, "bang");
+	envAttNr--;
 	this.patcher.remove(ops[thisID]);
-
 	cellState[x][y] = cellState[x+1][y-1] = cellState[x+2][y-2] = 0;
 
 }

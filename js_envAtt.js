@@ -47,11 +47,15 @@ function press(x,y,s)
 			else if(x == offsetX+1 && y == offsetY-1) // connector
 			{
 			//	post("envAtt: connecter enabled" + "\n");
-				envAtt_Connect(1); // connect mode, on
 				mode = 3;
+				envAtt_Connect(1); // connect mode, on
 			}
 		}
-		else if(c==0 && x == offsetX+1 && y == offsetY-1) envAtt_Connect(0); // connect mode, off
+		else if(c==0 && x == offsetX+1 && y == offsetY-1) 
+		{
+			mode=0;	
+			envAtt_Connect(0); // connect mode, off
+		}
 		else if(c==0) mode=0;
 
 		
@@ -87,8 +91,15 @@ function press(x,y,s)
 		}
 		else if(mode==0)
 		{
+			// procedure to avoid "stuck" modes:
+ 			outlet(0, "slo","inc", 0);
+			outlet(0, "slo","dec", 0);
+			outlet(0, "len", "inc", 0);
+			outlet(0, "len", "dec", 0);
+
 			outlet(0, "mode2", 1);
 			outlet(0, "mode1", 1);
+
 		}
 		
 	}
@@ -232,4 +243,14 @@ function envAtt_lightDown(id)
 		outlet(1, "bang");	
 	}
 	*/
+}
+
+function envAtt_deleteThis()
+{
+	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 0);
+	outlet(1, "bang");
+	outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY-1, 0);
+	outlet(1, "bang");
+	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY-2, 0);
+	outlet(1, "bang");	
 }

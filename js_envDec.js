@@ -38,21 +38,27 @@ function press(x,y,s)
 
 		c = c + ((s*2)-1); // if press: ++ // if release: --
 		//post("s: " + s + "x: " + x + "y: " + y + "\n");
-		//post("c: " + c + " s: " + s + "\n");
+	//	post("c: " + c + " s: " + s + "\n");
 		if(c==1 && s) // set mode
 		{
 			if(x == offsetX && y == offsetY) mode=1; // length
 			else if(x == offsetX+2 && y == offsetY+2) mode=2; // slope 
 			else if(x == offsetX+1 && y == offsetY+1) 
 			{
-				envDec_Connect(1); // connect mode, on
 				mode = 3;
+				envDec_Connect(1); // connect mode, on
 			}
 		}
-		else if(c==0 && x == offsetX+1 && y == offsetY+1) envDec_Connect(0); // connect mode, off
+		else if(c==0 && x == offsetX+1 && y == offsetY+1) 
+		{
+			mode=0;	
+			envDec_Connect(0); // connect mode, off
+		}
+		
 		else if(c==0) mode=0;
 
-		
+		post("mode: " + mode + "\n");
+
 		if(mode==1)
 		{
 			outlet(0, "mode1", 0);
@@ -85,8 +91,15 @@ function press(x,y,s)
 		}
 		else if(mode==0)
 		{
+			// procedure to avoid "stuck" modes:
+ 			outlet(0, "slo","inc", 0);
+			outlet(0, "slo","dec", 0);
+			outlet(0, "len", "inc", 0);
+			outlet(0, "len", "dec", 0);
+
 			outlet(0, "mode2", 1);
 			outlet(0, "mode1", 1);
+			
 		}
 
 	}
@@ -217,4 +230,15 @@ function envDec_lightDown(id)
 		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY+2, 8);
 		outlet(1, "bang");	
 	}
+}
+
+function envDec_deleteThis()
+{
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 0);
+		outlet(1, "bang");
+		outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 0);
+		outlet(1, "bang");
+		outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY+2, 0);
+		outlet(1, "bang");	
+
 }

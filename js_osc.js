@@ -47,6 +47,7 @@ function press(x,y,s)
 
 		if(y==offsetY || y==offsetY+1) // right area?
 		{
+			if(c<0) c=0; // bad solution to fixing the relase-not-getting-sent-to-here-because-of-stepConnectMode
 			c = c + ((s*2)-1); // if press: ++ // if release: --
 
 
