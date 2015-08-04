@@ -17,12 +17,8 @@ function init(x,y,id)
 	offsetX = x;
 	offsetY = y;
 	ID = id;
-	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", x, y, 8);
-	outlet(1, "bang");
-	outlet(1,"set", ";","[trig]toGrid","/trig/grid/led/level/set", x+1, y-1, 8);
-	outlet(1, "bang");
-	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", x+2, y-2, 8);
-	outlet(1, "bang");
+
+	draw();
 }
 
 function press(x,y,s)
@@ -253,4 +249,11 @@ function envAtt_deleteThis()
 	outlet(1, "bang");
 	outlet(1,"set",";","[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY-2, 0);
 	outlet(1, "bang");	
+}
+
+function draw()
+{
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", x, y, 8)
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", x+1, y-1, 8)
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", x+2, y-2, 8)
 }

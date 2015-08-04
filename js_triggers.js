@@ -13,6 +13,7 @@ var xx,yy; // for-loop "runners"
 
 var S; // press/release, global
 
+
 /*  old operator containers. new one just uses "ops"
 ////// variables for making/deleting operators
 var oscs = new Array(8); // max 8 oscs 
@@ -44,7 +45,7 @@ var envConnectID = 0;
 var envConnectType = 0;
 
 /////// cell state storage
-var cellState = new Array(16); // array to store the state of all cells (0 = free, and each OP has an ID)
+var cellState = new Array(16); // array to store the state of all cells (0 = free, and each OP has an ID) // cellstates: 1 0sc, 2 decenv, 3 atenv, 4 seqh, 5 seqv, 
 var cellID = new Array(16); // array to store unique operator ID for each cell
 //////
 
@@ -59,26 +60,32 @@ var envConnectMode;
 var tempConnectButtonX;
 var tempConnectButtonY;
 
-for (var i = 0; i<32; i++) { 							
-    now[i] = new Array(32); //  make press-array contain y-info as well
-}
-for (var i = 0; i<16; i++) { 							
-    cellState[i] = new Array(32); // make cell-array contain if cellState are used/free
-    cellID[i] = new Array(32);
-    // init cell array x+y
-}
-for (var i = 0; i<32; i ++)
-{
-	for(var b = 0; b <32; b++)
-	{
-		now[i][b]=0;
-    	cellState[i][b]=0;
-    	cellID[i][b]=0;
-	}
-}
+
 
 function init()
 {	
+
+	for (var i = 0; i<32; i++) { 							
+	    now[i] = new Array(32); //  make press-array contain y-info as well
+	}
+	for (var i = 0; i<32; i++) { 							
+	    cellState[i] = new Array(32); // make cell-array contain if cellState are used/free
+	    cellID[i] = new Array(32);
+	    // init cell array x+y
+	}
+	for (var i = 0; i<32; i ++)
+	{
+		for(var b = 0; b <32; b++)
+		{
+			now[i][b]=0;
+	    	cellState[i][b]=0;
+	    	cellID[i][b]=0;
+		}
+	}
+
+
+
+
 	op_id = 1;
 	numberOfDeletedOps = 0;
 
@@ -202,7 +209,7 @@ function list(x,y,s)
 					}
 					else if(sum==length*5) // already seq = DELETE:
 					{
-						//delSeqV(firstX, topmostY, length);
+						delSeqV(firstX, topmostY, length);
 					}
 
 				}
@@ -282,11 +289,7 @@ function list(x,y,s)
 			{
 					// firstX == tempConnectButtonX && firstY == tempConnectButtonY 
 				envConnectMode = 0; // release stepconnect enabler
-				for(i=0;i<oscNr;i++)
-				{
-					outlet(0,"set",";","[trig]oscIn"+oscIDs[i], "osc_lightDown"); 
-					outlet(0, "bang");
-				}
+				for(i=0;i<oscNr;i++) messnamed("[trig]oscIn"+oscIDs[i], "osc_lightDown"); 
 			}
 
 		} 
@@ -306,11 +309,8 @@ function list(x,y,s)
 
 
 		//////////////// to operators js in \\\\\\\\\\\\\\
-		if(envConnectMode==0 && oscConnectMode==0) 
-		{ // only send raw presses to operators if no connector buttons are being held
-			outlet(0, "set", ";", "[trig]fromGrid", x,y,s);
-			outlet(0, "bang");
-		}
+		if(envConnectMode==0 && oscConnectMode==0) messnamed("[trig]fromGrid", x,y,s); // only send raw presses to operators if no connector buttons are being held
+	
 		///////////////// \\\\\\\\\\\\\\\\\\\\\\\\\
 
 		/*
@@ -330,29 +330,14 @@ function list(x,y,s)
 			}
 		} */
 
+
+
 		if(s && envConnectMode) // envelope-connector, activated:
 		{
-			if(cellState[x][y] == 5) // if pushing a seqV
-			{
-				outlet(0, "set", ";", "[trig]SeqVIn"+cellID[x][y],"setStep", envConnectType, envConnectID, y)
-				outlet(0, "bang");
-			}
-			else if(cellState[x][y] == 4) // if pushing a seqH 
-			{
-				outlet(0, "set", ";", "[trig]SeqHIn"+cellID[x][y],"setStep", envConnectType, envConnectID, x)
-				outlet(0, "bang");
-			}
-			else if(cellState[x][y] == 1) // if pushing an osc
-			{
-				post("envConnectType: " + envConnectType + "\n");
-				outlet(0, "set", ";", "[trig]oscIn"+cellID[x][y],"osc_connectToEnv", envConnectType, envConnectID, x,y)
-				outlet(0, "bang");
-			}
-			
+			if(cellState[x][y] == 5) messnamed("[trig]SeqVIn"+cellID[x][y],"setStep", envConnectType, envConnectID, y); // if pushing a seqV
+			else if(cellState[x][y] == 4) messnamed("[trig]SeqHIn"+cellID[x][y],"setStep", envConnectType, envConnectID, x); // if pushing a seqH 
+			else if(cellState[x][y] == 1) messnamed("[trig]oscIn"+cellID[x][y],"osc_connectToEnv", envConnectType, envConnectID, x,y); // if pushing an osc
 		}
-		
-		//post("oscConnectMode: " + oscConnectMode + "\n");
-		//post("envConnectMode: " + envConnectMode + "\n");
 		
 	}
 
@@ -479,57 +464,6 @@ function delEnvAtt(x,y){
 
 }
 
-
-///////// interaction between operators /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-function triggers_oscConnect(id, state,xxx,yyy) // osc --> here (setting oscConnect enable mode to active) --> envelope (if next press is correct positino)
-{	///////  THIS FUNCTION IS ONLY NEEDED IF THE OSC OP IS SUPPOSED TO HAVE A CONNECT/lightUpEnv-ENV FUNCTION!
-	/*
-	post("state: " + state + "\n");
-	post("S: " + S + "\n");
-	post("c: " + c + "\n");
-	post("firstX: " + firstX + "\n");
-	post("firstY: " + firstY + "\n");
-	post("xxx: " + xxx + "\n");
-	post("yyy: " + yyy + "\n");
-*/ /*
-
-	oscConnectID = id;
-	oscConnectMode = state;
-
-
-
-	if(state==1 && c==1 && firstX == xxx && firstY == yyy)
-	{
-		for(i=0; i<=envDecNr;i++)
-		{
-			post("lightUpEnv on: " + envDecIds[i] + "\n");
-			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "envDec_lightUp", oscConnectID);
-			outlet(0, "bang");
-		}
-		for(i=0; i<=envAttNr;i++)
-		{
-			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "envAtt_lightUp", oscConnectID);
-			outlet(0, "bang");
-		}
-	}
-	else if(state==0 && c==0 && firstX == xxx && firstY == yyy) 
-	{
-
-		for(i=0; i<=envDecNr;i++)
-		{
-			outlet(0, "set", ";", "[trig]envDecIn"+envDecIds[i], "envDec_lightDown", oscConnectID);
-			outlet(0, "bang");
-		}
-		for(i=0; i<=envAttNr;i++)
-		{
-			outlet(0, "set", ";", "[trig]envAttIn"+envAttIds[i], "envAtt_lightDown", oscConnectID);
-			outlet(0, "bang");
-		}	
-	}
-}
-*/
 function triggers_envConnect(type, envID,state, tempX, tempY) // envelope --> here --> step/osc/.. ?? 
 {
 
@@ -541,46 +475,13 @@ function triggers_envConnect(type, envID,state, tempX, tempY) // envelope --> he
 	envConnectID = envID;
 	if(state)envConnectMode=1;
 	else envConnectMode=0;
-/*
-	post("envConnect - s: " + state + "\n");
-	post("envConnect - c: " + c + "\n");
-	post("envConnect - firstX: " + firstX + "\n");
-	post("envConnect - firstY: " + firstY + "\n");
-	post("envConnect - tempX: " + tempX + "\n");
-	post("envConnect - tempY: " + tempY + "\n");
-	*/
-//	post("triggers_envConnect" + "\n");
 
 	if(state) 
-	{
-		for(i=0; i<oscNr;i++)
-		{
-			//post("oscIds " + i + " " + oscIDs[i] + "\n");
-
-			//post("envConnect - oscIn i" + i + " : " + oscIDs[i] + "\n");
-			outlet(0, "set", ";", "[trig]oscIn"+oscIDs[i], "osc_lightUp", envID);
-			outlet(0, "bang");
-		}
+		for(i=0; i<oscNr;i++) messnamed("[trig]oscIn"+oscIDs[i], "osc_lightUp", envID); // ask all osc's if this env is connected or not // press down
+	else if(state==0 && c==0 && firstX == tempX+1 && firstY == tempY+1) // press release
+		for(i=0; i<oscNr;i++) messnamed(0, "set", ";", "[trig]oscIn"+oscIDs[i], "osc_lightDown"); 
+	
 		
-	}
-	else if(state==0 && c==0 && firstX == tempX+1 && firstY == tempY+1) // only on connector-release
-	{
-		for(i=0; i<oscNr;i++)
-		{
-			outlet(0, "set", ";", "[trig]oscIn"+oscIDs[i], "osc_lightDown");
-			outlet(0, "bang");
-		}
-		
-	}
-	//post("inside shapes-envConnect: envConnectMode: " + envConnectMode + "\n");
-	/*
-	if(cellState[x][y] == 2) // is there a seq here?
-	{
-		post("settingstep");
-		outlet(0, "set", ";", "[shapes]stepIn"+id, "setStep", id,x,y,s);
-		outlet(0, "bang");
-	}
-	*/
 }
 
 function envLidState(id, state)
@@ -623,3 +524,85 @@ function makeID()
 
 	return newID;
 }
+
+
+function  drawPianoRoll(xpos,ypos, ident, dir, pitch, octave, scale)
+{
+	if(!dir) // left
+	{
+		for(ix = xpos - 2; ix < xpos; ix++)
+		{
+			for(iy=0; iy < 8; iy++)
+			{
+				messnamed("[trig]toGrid", "/trig/grid/led/level/set", ix, iy, 5); // draw overlay
+
+				if(cellID[ix][iy] != 0) // an op was found
+				{	
+					messnamed("[trig]overlayGate"+cellID[ix][iy], 0); // close overlay gate
+				}
+					
+			}
+		}
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-1, pitch, 15); // draw pitch
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, scale, 15); // draw scale
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, octave+3, 15); // draw octave
+	}
+	else
+	{
+		for(ix = xpos + 2; ix < xpos + 4; ix++)
+		{
+			for(iy=0; iy < 8; iy++)
+			{
+				messnamed("[trig]toGrid", "/trig/grid/led/level/set", ix, iy, 5); // draw overlay
+
+				if(cellID[ix][iy] != 0) // an op was found
+				{	
+					messnamed("[trig]overlayGate"+cellID[ix][iy], 0); // close overlay gate
+				}
+					
+			}
+		}
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+3, pitch, 15); // draw pitch
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, scale, 15); // draw scale
+		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, octave+3, 15); // draw octave
+	}
+}
+
+function  erasePianoRoll(xpos,ypos, ident, dir)
+{
+	if(!dir) // left
+	{
+		for(ix = xpos - 2; ix < xpos; ix++)
+		{
+			for(iy=0; iy < 8; iy++)
+			{
+				messnamed("[trig]toGrid", "/trig/grid/led/level/set", ix, iy, 0); // erase overlay
+
+				if(cellID[ix][iy] != 0) // an op was found
+				{	
+					//post("OP FOUND" + "\n");
+					messnamed("[trig]overlayGate"+cellID[ix][iy], 1); // open overlay gate
+					messnamed("[trig]overlayGate"+cellID[ix][iy], "redraw"); // redraw
+					post("[trig]overlayGate"+cellID[ix][iy], "redraw" + "\n");
+				}
+					
+			}
+		}
+	}
+	else
+	{
+		for(ix = xpos + 2; ix < xpos; ix++)
+		{
+			for(iy=0; iy < 8; iy++)
+			{
+				messnamed("[trig]toGrid", "/trig/grid/led/level/set", ix, iy, 0); // erase overlay
+
+				if(cellID[ix][iy] != 0) // an op was found
+				{	
+					messnamed("[trig]overlayGate"+cellID[ix][iy], 1); // open overlay gate
+				}
+			}
+		}
+	}
+}
+// cellstates: 1 0sc, 2 decenv, 3 atenv, 4 seqh, 5 seqv, 
