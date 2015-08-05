@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 383.0, 216.0, 974.0, 743.0 ],
+		"rect" : [ 581.0, 208.0, 974.0, 743.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
 		"default_fontsize" : 12.0,
@@ -330,9 +330,9 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 72.0, 151.0, 156.0, 18.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 11.25, 152.0, 36.0, 18.0 ],
+					"presentation_rect" : [ 11.25, 152.0, 29.0, 18.0 ],
 					"style" : "",
-					"text" : "1.0a"
+					"text" : "1.0"
 				}
 
 			}
@@ -444,6 +444,20 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"boxes" : [ 							{
+								"box" : 								{
+									"id" : "obj-171",
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 135.0, 341.0, 150.0, 20.0 ],
+									"presentation" : 1,
+									"presentation_rect" : [ 104.0, 340.0, 95.0, 20.0 ],
+									"style" : "",
+									"text" : "not yet working!"
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"fontname" : "Arial",
 									"fontsize" : 12.0,
