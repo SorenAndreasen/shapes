@@ -3,7 +3,7 @@ outlets = 3;
 
 var offsetX;
 var offsetY;
-var length;
+var Length;
 var c = 0; // count presses
 var c_ = 0; // count+store presses
 var start = 0; // start flag
@@ -12,12 +12,15 @@ var pressSecondY=0;
 var syncRate = new Array(8);
 var syncInd = 1;
 
+var envArrayAmount = new Array(16); // for holding how many envelopes are connected on each step
+var envArray = new Array(16); // 4 dimensional for holding x (on which step), y (which number), z (which variable) (0 = type, 1 = id, 3 = on/off)
 
-function init(x1,x2,y)
+function init(x1,length,y)
 {
 	offsetX = x1;
-	length = x2;
+	Length = length;
 	offsetY = y;
+	
 	syncRate[0]="4n";
 	syncRate[1]="4nt";
 	syncRate[2]="8nd";
@@ -26,11 +29,25 @@ function init(x1,x2,y)
 	syncRate[5]="16nd";
 	syncRate[6]="16n";
 	syncRate[7]="16nt";
+
+	for(x=0; x<16; x++) // grid size max
+	{
+		envArrayAmount[x] = 0; // init array mount to 0
+
+		envArray[x] = new Array(24); // make y
+
+		for(yy=0; yy<24; yy++) 
+		{
+			envArray[x][yy] = new Array(3); // make z: max amounts of envelopes active
+
+			for(z=0; z<3; z++) envArray[x][yy][z] = 0; // init to 0
+		}	
+	}	
 }
 
 function press(x,y,s)
 {
-	var range = length+offsetY;
+	var range = Length+offsetY;
 
 	if(y >= offsetY && y < range && x == offsetX) // check for local op range
 	{
@@ -55,7 +72,7 @@ function press(x,y,s)
 			{
 				outlet(0, y-offsetY);	
 			}
-			else if(c_==2 && length>2) // innerloop
+			else if(c_==2 && Length>2) // innerloop
 			{
 				if(pressFirstY > pressSecondY) // reverse
 				{
@@ -67,7 +84,7 @@ function press(x,y,s)
 					outlet(1, "max", pressSecondY-offsetY);
 				}
 			}
-			else if(c_==2 && length<3) // syncrate
+			else if(c_==2 && Length<3) // syncrate
 			{
 				outlet(2, syncRate[syncInd]);
 				syncInd++;
@@ -167,7 +184,7 @@ function playhead(pos) // only for envelope activation (not visuals).. should be
 	{
 		if(envArray[pos][i][2] == 15)
 		{
-			if(envArray[pos][i][0] == 1) messnamed("[trig]envAttTrigger"+envArray[pos][i][1], "bang");
+			if(envArray[pos][i][0] == 1) messnamed("[trig]envDecTrigger"+envArray[pos][i][1], "bang");
 			else messnamed("[trig]envAttTrigger"+envArray[pos][i][1], "bang");
 			
 		}

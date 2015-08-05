@@ -15,8 +15,6 @@ var syncInd = 1;
 var envArrayAmount = new Array(16); // for holding how many envelopes are connected on each step
 var envArray = new Array(16); // 4 dimensional for holding x (on which step), y (which number), z (which variable) (0 = type, 1 = id, 3 = on/off)
 
-var connectedEnvelopes = 0;
-
 function init(x1,length,y)
 {
 	offsetX = x1;
@@ -45,7 +43,6 @@ function init(x1,length,y)
 			for(z=0; z<3; z++) envArray[x][yy][z] = 0; // init to 0
 		}	
 	}	
-
 }
 
 function press(x,y,val)

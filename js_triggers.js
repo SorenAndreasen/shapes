@@ -404,9 +404,7 @@ function delOsc(x,y){
 	//post("on delete osc: thisID: " + thisID + "\n");
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-
-	outlet(0, "set", ";", "[trig]OscOnOff"+thisID, 0);
-	outlet(0, "bang");
+	messnamed("[trig]OscOnOff"+thisID, 0);
 	this.patcher.remove(ops[thisID])
 	oscNr--;
 	cellState[x][y] = cellState[x+1][y] = cellState[x][y+1] = cellState[x+1][y+1] = 0;
@@ -416,9 +414,7 @@ function delSeqH(x, y, length){
 	var thisID = cellID[x][y];
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-
-	outlet(0, "set", ";", "[trig]SeqHOnOff"+thisID, "del");
-	outlet(0, "bang");
+	messnamed("[trig]SeqHOnOff"+thisID, "del");
 	this.patcher.remove(ops[thisID]);
 
 	for(i=0;i<length;i++)
@@ -429,10 +425,8 @@ function delSeqV(x,y,length){
 	var thisID = cellID[x][y];
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-
-	outlet(0, "set", ";", "[trig]SeqVOnOff"+thisID, "del");
-	outlet(0, "bang");
-	this.patcher.remove(operators[thisID]);
+	messnamed("[trig]SeqVOnOff"+thisID, "del");
+	this.patcher.remove(ops[thisID]);
 
 	for(i=0;i<length;i++)
 		cellState[x][y+i] = 0; // free cellState
@@ -444,10 +438,7 @@ function delEnvDec(x,y){
 	post("del env dec. thisID: " + thisID + "\n");
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-
-	outlet(0, "set", ";", "[trig]envDecIn"+thisID, "envDec_deleteThis");
-	outlet(0, "bang");
-
+	messnamed("[trig]envDecIn"+thisID, "envDec_deleteThis");
 	envDecNr--;
 	this.patcher.remove(ops[thisID]);
 	cellState[x][y] = cellState[x+1][y+1] = cellState[x+2][y+2] = 0;
@@ -457,8 +448,7 @@ function delEnvAtt(x,y){
 	var thisID = cellID[x][y];
 	numberOfDeletedOps++;
 	lastDeletedID[numberOfDeletedOps] = thisID;
-	outlet(0, "set", ";", "[trig]envAttIn"+thisID, "envAtt_deleteThis");
-	outlet(0, "bang");
+	messnamed("[trig]envAttIn"+thisID, "envAtt_deleteThis");
 	envAttNr--;
 	this.patcher.remove(ops[thisID]);
 	cellState[x][y] = cellState[x+1][y-1] = cellState[x+2][y-2] = 0;
