@@ -193,7 +193,7 @@ function envDec_lightDown(id)
 
 function envDec_deleteThis()
 {
-		messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 0);
-		messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 0);
-		messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY+2, 0);
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX, offsetY, 0);
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX+1, offsetY+1, 0);
+	messnamed("[trig]toGrid","/trig/grid/led/level/set", offsetX+2, offsetY+2, 0);
 }

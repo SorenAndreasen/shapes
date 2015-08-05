@@ -67,6 +67,8 @@ function press(x,y,val)
 		if(c==2) pressSecondX=x; // store second press, X
 		
 		
+		
+
 		if(c==0 && start==1) // finished pressing
 		{
 			start=0;
@@ -87,7 +89,7 @@ function press(x,y,val)
 					outlet(1, "max", pressSecondX-offsetX);
 				}
 			}
-			else if(c==2 && Length<3) // syncrate
+			else if(c_==2 && Length<3) // syncrate
 			{
 				outlet(2, syncRate[syncInd]);
 				syncInd++;
@@ -152,8 +154,6 @@ function setStep(type, id , xy) // dec/att, env id, x/y press on seq
 			}
 		}
 	}
-
-	
 }
 
 function ledUpdate(s, id) // from env (to show steps belonging to currently held env)
@@ -173,12 +173,6 @@ function ledUpdate(s, id) // from env (to show steps belonging to currently held
 		{
 			for(ii = 0; ii <= envArrayAmount[i]; ii++) // go through amounts of connected envelopes and check id
 			{
-				ON++;
-				post("ID: " + envArray[i][ ii ] [1] + "\n");
-				post("onoff: " + envArray[i][ ii ] [2] + "\n");
-				post("id: " + id + "\n");
-				
-
 				if(id == envArray[i][ ii ] [1] && envArray[i][ ii ] [2] == 15 ) // if current slot id matches currently pressed envelope id and is turned on
 				{
 					messnamed("[trig]toGrid","/trig/grid/led/level/set", i, offsetY, 15);
@@ -198,7 +192,7 @@ function playhead(pos) // only for envelope activation (not visuals).. should be
 		if(envArray[pos][i][2] == 15)
 		{
 			if(envArray[pos][i][0] == 1) messnamed("[trig]envDecTrigger"+envArray[pos][i][1], "bang");
-			else messnamed("[trig]envDecTrigger"+envArray[pos][i][1], "bang");
+			else messnamed("[trig]envAttTrigger"+envArray[pos][i][1], "bang");
 			
 		}
 	}
@@ -215,6 +209,5 @@ function redraw()
 	}
 
 	messnamed("[trig]allSeq", "ledGate", 1); // turn on playhead again in all sequencers
-
 }
 

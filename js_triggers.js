@@ -245,6 +245,7 @@ function list(x,y,s)
 				}
 				else if(shape==273)  // decay env	
 				{
+					post("decay env" + "\n");
 					if(cellState[minx][miny] == 0 && cellState[minx+1][miny+1] == 0 && cellState[minx+2][miny+2] == 0) setEnvDec(minx,miny); 
 					else if(cellState[minx][miny] == 2 && cellState[minx+1][miny+1] == 2 && cellState[minx+2][miny+2] == 2) delEnvDec(minx,miny);
 				//	post("setting env dec at: min max: " + minx + " " + miny + "\n");
