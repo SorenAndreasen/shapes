@@ -4,8 +4,8 @@ outlets = 3;
 var offsetX;
 var offsetY;
 var Length;
-var c = 0; // count presses
-var c_ = 0; // count+store presses
+var c; // count presses
+var c_; // count+store presses
 var start = 0; // start flag
 var pressFirstX=0;
 var pressSecondX=0;

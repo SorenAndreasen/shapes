@@ -1,7 +1,11 @@
 inlets = 2;
 outlets = 12;
-var c = 0;
+
+var c; // count presses
+var c_; // count+store presses
 var start;
+var pressFirst;
+var pressSecond;
 var offsetX;
 var offsetY;
 var firstX;
@@ -26,34 +30,14 @@ var scale;
 var pianoRollDir; // 0 = left, 1 = right
 var pianoRollMode;
 
-var scaleArray = new Array(2)
-
-
 var timePitchSwitch;
 
 function init(x,y, id)
 {
-	scaleArray[0] = new Array(8); // minor
-	scaleArray[1] = new Array(8); // major
-
-	scaleArray[0][0] = 0; 
-	scaleArray[0][1] = 2;
-	scaleArray[0][2] = 3;
-	scaleArray[0][3] = 5;
-	scaleArray[0][4] = 7;
-	scaleArray[0][5] = 8;
-	scaleArray[0][6] = 10;
-	scaleArray[0][7] = 12;
-
-	scaleArray[1][0] = 0;
-	scaleArray[1][1] = 2;
-	scaleArray[1][2] = 4;
-	scaleArray[1][3] = 5;
-	scaleArray[1][4] = 7;
-	scaleArray[1][5] = 9;
-	scaleArray[1][6] = 11;
-	scaleArray[1][7] = 12;
-
+	pressFirst = 0;
+	pressSecond = 0;
+	c = 0;
+	c_ = 0;
 
 	pianoRollMode = 0;
 	timePitchSwitch = 0;
@@ -91,6 +75,7 @@ function press(x,y,s)
 	{
 		if(y==offsetY || y==offsetY+1) // right area?
 		{
+
 			if(c<0) c=0; // bad solution to fixing the relase-not-getting-sent-to-here-because-of-stepConnectMode
 			c = c + ((s*2)-1); // number of keys pressed, realtime
 			
@@ -183,38 +168,42 @@ function press(x,y,s)
 			}
 		
 		}
-
-
 	}
 	else if(pianoRollMode) // presses in piano roll
 	{
-		// c = c + ((s*2)-1); // number of keys pressed, realtime
+		c = c + ((s*2)-1); // number of keys pressed, realtime
+
 		if(s)
 		{
+			c_++;
+			if(c==1) pressFirst = y;
+			else if(c==2) pressSecond = y;
+
 			if(!pianoRollDir && x < offsetX && x > offsetX -3) // inside piano roll - left
 			{
 				if(x == offsetX - 1) pitch = y; // right column (note presses)
-				else // left column (scale + octave)
-				{
-					if(y > 2) octave = y - 3;
-					else scale = y;
-				}
+				else if(x == offsetX - 2 && y > 3) pitch = y+8// left column notepress
+				else if(c == 2 && pressFirst + pressSecond == 5) octave = 6; // deep oct
+				else if(c == 2 && pressFirst + pressSecond == 1) octave = 1// high oct
+				else octave = y + 2;
+				
 			}
 			else if(pianoRollDir && x > offsetX + 1 && x < offsetX + 4) // right
 			{
 
 				if(x == offsetX + 3) pitch = y; // right column (note presses)
-				else // left column (scale + octave)
-				{
-					if(y > 2) octave = y - 3;
-					else scale = y;
-				}
+				else if(x == offsetX + 2 && y > 3) pitch = y+8// left column notepress
+				else if(c == 2 && pressFirst + pressSecond == 5) octave = 6; // deep oct
+				else if(c == 2 && pressFirst + pressSecond == 1) octave = 1// high oct
+				else octave = y + 2;
 
 			}
-			messnamed("[trig]triggersIn", "drawPianoRoll", offsetX, offsetY, ID, pianoRollDir, pitch, octave, scale);
+			messnamed("[trig]triggersIn", "drawPianoRoll", offsetX, offsetY, ID, pianoRollDir, pitch, octave);
 
-			messnamed("[trig]mtof"+ID, scaleArray[scale][-pitch + 7] + (-octave + 5) * 12    );
+			if(pitch < 8) messnamed("[trig]mtof"+ID, ((-pitch + 7) + (-octave + 5) * 12) + 48    );
+			else messnamed("[trig]mtof"+ID, ((-pitch + 23) + (-octave + 5) * 12) + 48    );
 		}
+		else c_ = 0;
 		
 	}
 }

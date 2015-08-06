@@ -517,9 +517,9 @@ function makeID()
 }
 
 
-function  drawPianoRoll(xpos,ypos, ident, dir, pitch, octave, scale)
+function  drawPianoRoll(xpos,ypos, ident, dir, pitch, octave)
 {
-	if(!dir) // left
+	if(!dir) // left of
 	{
 		for(ix = xpos - 2; ix < xpos; ix++)
 		{
@@ -534,11 +534,24 @@ function  drawPianoRoll(xpos,ypos, ident, dir, pitch, octave, scale)
 					
 			}
 		}
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-1, pitch, 15); // draw pitch
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, scale, 15); // draw scale
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, octave+3, 15); // draw octave
+		if(pitch < 8) messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-1, pitch, 15); // draw pitch right col
+		else messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, pitch - 8, 15); // draw pitch left col
+
+		//messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, scale, 15); // draw scale
+
+		if( octave == 6) // draw high octave
+		{
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, 2, 15); 
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, 3, 15); 
+		}
+		else if( octave == 1) // draw low octave
+		{
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, 0, 15); 
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, 1, 15); 
+		}
+		else messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos-2, octave-2, 15); 
 	}
-	else
+	else // right of
 	{
 		for(ix = xpos + 2; ix < xpos + 4; ix++)
 		{
@@ -553,9 +566,22 @@ function  drawPianoRoll(xpos,ypos, ident, dir, pitch, octave, scale)
 					
 			}
 		}
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+3, pitch, 15); // draw pitch
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, scale, 15); // draw scale
-		messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, octave+3, 15); // draw octave
+		if(pitch < 8) messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+3, pitch, 15); // draw pitch
+		else messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, pitch - 8, 15); // draw pitch
+
+		//messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, scale, 15); // draw scale
+
+		if( octave == 6) // draw high octave
+		{
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, 0, 15); 
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, 1, 15); 
+		}
+		else if( octave == 1) // draw low octave
+		{
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, 2, 15); 
+			messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, 3, 15); 
+		}
+		else messnamed("[trig]toGrid", "/trig/grid/led/level/set", xpos+2, octave-2, 15); 
 	}
 }
 
